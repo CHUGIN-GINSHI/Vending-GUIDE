@@ -1,0 +1,672 @@
+<title>自販機のはじめかた</title>
+<style>
+  /* ============================================================
+     配色: 夜の自販機。冷たい鋼色の地に、真鍮（お金）の差し色。
+     ニュートラルは純グレーではなく青寄りの鋼色。
+     ============================================================ */
+  :root {
+    color-scheme: light;
+    --ground:    #EEF1F4;
+    --panel:     #FFFFFF;
+    --slot:      #1B2128;
+    --slot-ink:  #DCE3EA;
+    --ink:       #141A21;
+    --muted:     #57646F;
+    --hair:      #D2D9DF;
+    --hair-firm: #B4BFC8;
+    --brass:     #8A6420;
+    --brass-dim: #EDE3D0;
+    --ok:        #256D48;
+    --ok-bg:     #E2F0E8;
+    --warn:      #8A5A0C;
+    --warn-bg:   #F6ECD9;
+    --stop:      #97332F;
+    --stop-bg:   #F7E4E2;
+
+    --f-jp: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium",
+            "Noto Sans JP", "Meiryo", system-ui, sans-serif;
+    --f-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+              "Hiragino Kaku Gothic ProN", monospace;
+
+    --step: clamp(1rem, 0.7rem + 1.1vw, 1.5rem);
+    --rule: 1px solid var(--hair);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground:    #10151A;
+      --panel:     #192027;
+      --slot:      #0B0F13;
+      --slot-ink:  #C8D3DC;
+      --ink:       #E3E9EF;
+      --muted:     #94A1AD;
+      --hair:      #2A333C;
+      --hair-firm: #3C4854;
+      --brass:     #D6A445;
+      --brass-dim: #3A2F1B;
+      --ok:        #67C293;
+      --ok-bg:     #172A21;
+      --warn:      #E0A63F;
+      --warn-bg:   #2C2416;
+      --stop:      #E8807C;
+      --stop-bg:   #2E1B1A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:    #10151A;
+    --panel:     #192027;
+    --slot:      #0B0F13;
+    --slot-ink:  #C8D3DC;
+    --ink:       #E3E9EF;
+    --muted:     #94A1AD;
+    --hair:      #2A333C;
+    --hair-firm: #3C4854;
+    --brass:     #D6A445;
+    --brass-dim: #3A2F1B;
+    --ok:        #67C293;
+    --ok-bg:     #172A21;
+    --warn:      #E0A63F;
+    --warn-bg:   #2C2416;
+    --stop:      #E8807C;
+    --stop-bg:   #2E1B1A;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-jp);
+    font-size: 16px;
+    line-height: 1.9;
+    -webkit-font-smoothing: antialiased;
+    text-size-adjust: 100%;
+  }
+
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  /* ---------- 骨格 ---------- */
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(1.1rem, 4vw, 3rem);
+  }
+
+  .masthead {
+    border-bottom: 1px solid var(--hair-firm);
+    padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(1.8rem, 4vw, 2.6rem);
+  }
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.1rem;
+    font-weight: 600;
+  }
+  .masthead h1 {
+    font-size: clamp(2.1rem, 1.2rem + 3.6vw, 3.6rem);
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: clamp(1rem, 0.95rem + 0.3vw, 1.13rem);
+    color: var(--muted);
+    max-width: 34em;
+    margin: 0;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 2.4rem;
+    margin-top: 2rem;
+    padding: 0;
+    list-style: none;
+  }
+  .facts div { display: flex; flex-direction: column; }
+  .facts dt {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .facts dd {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.02rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cols { display: block; }
+  @media (min-width: 1040px) {
+    .cols {
+      display: grid;
+      grid-template-columns: 15rem 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .rail {
+      position: sticky;
+      top: 2rem;
+      padding: 3rem 0 2rem;
+    }
+  }
+
+  /* ---------- 目次 ---------- */
+  .rail { padding: 2.4rem 0 0; }
+  .rail p {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 0 0 0.9rem;
+  }
+  .rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: var(--rule);
+  }
+  .rail li { border-bottom: var(--rule); }
+  .rail a {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    transition: color 0.15s;
+  }
+  .rail a:hover { color: var(--brass); }
+  .rail a b {
+    font-variant-numeric: tabular-nums;
+    color: var(--hair-firm);
+    font-weight: 700;
+    min-width: 1.1em;
+  }
+  .rail a:hover b { color: var(--brass); }
+
+  /* ---------- 本文 ---------- */
+  main { padding-bottom: 6rem; }
+  section { padding: clamp(2.4rem, 5vw, 3.6rem) 0 0; }
+  section > h2 {
+    font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.75rem);
+    line-height: 1.5;
+    letter-spacing: 0.015em;
+    margin: 0 0 1.4rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--hair-firm);
+    text-wrap: balance;
+  }
+  p { margin: 0 0 1.05rem; max-width: 40em; }
+  .muted { color: var(--muted); }
+
+  /* 手順 — 番号は「順序が本当に意味を持つ」からこそ付ける */
+  .step { margin-bottom: clamp(2.2rem, 4vw, 3rem); }
+  .step-head { display: flex; align-items: baseline; gap: 0.85rem; margin-bottom: 0.9rem; }
+  .step-num {
+    font-family: var(--f-mono);
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
+    font-weight: 700;
+    color: var(--brass);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+  .step-head h3 {
+    font-size: clamp(1.08rem, 1rem + 0.4vw, 1.28rem);
+    line-height: 1.55;
+    margin: 0;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  @media (min-width: 720px) {
+    .step { display: grid; grid-template-columns: 3.4rem 1fr; gap: 0 1.2rem; }
+    .step-head { display: contents; }
+    .step-num { grid-column: 1; grid-row: 1; text-align: right; padding-top: 0.15rem; }
+    .step-head h3 { grid-column: 2; grid-row: 1; margin-bottom: 0.9rem; }
+    .step-body { grid-column: 2; }
+  }
+
+  /* コマンドの投入口 */
+  .slot {
+    background: var(--slot);
+    color: var(--slot-ink);
+    border-radius: 4px;
+    padding: 0.85rem 3.2rem 0.85rem 1rem;
+    margin: 0 0 1.05rem;
+    font-family: var(--f-mono);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    position: relative;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .slot b { color: var(--brass); font-weight: 700; }
+  .slot i { color: #8FA0AF; font-style: normal; }
+  .copy {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: transparent;
+    border: 1px solid #3A464F;
+    color: #93A3B1;
+    border-radius: 3px;
+    font: inherit;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .copy:hover { border-color: var(--brass); color: var(--brass); }
+
+  /* 注記 */
+  .note {
+    border: 1px solid var(--hair-firm);
+    border-radius: 4px;
+    padding: 0.9rem 1.1rem;
+    margin: 0 0 1.05rem;
+    background: var(--panel);
+    max-width: 44em;
+  }
+  .note > :last-child { margin-bottom: 0; }
+  .note p { max-width: none; }
+  .tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 0.13em;
+    font-weight: 700;
+    padding: 0.05rem 0.5rem;
+    border-radius: 3px;
+    margin-bottom: 0.45rem;
+  }
+  .note.warn { border-color: var(--warn); background: var(--warn-bg); }
+  .note.warn .tag { background: var(--warn); color: var(--ground); }
+  .note.stop { border-color: var(--stop); background: var(--stop-bg); }
+  .note.stop .tag { background: var(--stop); color: var(--ground); }
+  .note.info .tag { background: var(--hair); color: var(--ink); }
+
+  ul.plain { margin: 0 0 1.05rem; padding-left: 1.2rem; max-width: 40em; }
+  ul.plain li { margin-bottom: 0.3rem; }
+  ul.plain li::marker { color: var(--hair-firm); }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: 0.88em;
+    background: var(--brass-dim);
+    color: var(--ink);
+    padding: 0.08em 0.34em;
+    border-radius: 3px;
+  }
+  strong { font-weight: 700; }
+
+  /* 表 */
+  .scroller { overflow-x: auto; margin: 0 0 1.3rem; border: 1px solid var(--hair-firm); border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; background: var(--panel); }
+  th, td {
+    text-align: left;
+    padding: 0.62rem 0.9rem;
+    border-bottom: var(--rule);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    vertical-align: top;
+  }
+  thead th {
+    background: var(--ground);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: none; }
+  tbody th { font-weight: 700; white-space: nowrap; }
+  td.yes { color: var(--ok); font-weight: 700; }
+  td.no { color: var(--muted); }
+
+  .end {
+    margin-top: 4rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--hair-firm);
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+    html { scroll-behavior: auto; }
+  }
+  html { scroll-behavior: smooth; }
+  :target { scroll-margin-top: 1.5rem; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">駐銀 自販機Bot</p>
+    <h1>自販機のはじめかた</h1>
+    <p class="lede">
+      自分のサーバーに自販機を置いて、売上を駐銀の口座で受け取るまでの手順です。
+      はじめて設置する方向けに、上から順にやれば終わる形で書いています。
+    </p>
+    <dl class="facts">
+      <div><dt>所要</dt><dd>15分ほど</dd></div>
+      <div><dt>必要なもの</dt><dd>サーバーの管理権限</dd></div>
+      <div><dt>手順</dt><dd>9つ</dd></div>
+    </dl>
+  </header>
+
+  <div class="cols">
+    <nav class="rail" aria-label="目次">
+      <p>目次</p>
+      <ol>
+        <li><a href="#s1"><b>1</b><span>自販機を使えるようにする</span></a></li>
+        <li><a href="#s2"><b>2</b><span>売上の受取先を決める</span></a></li>
+        <li><a href="#s3"><b>3</b><span>支払い方法を選ぶ</span></a></li>
+        <li><a href="#s4"><b>4</b><span>商品を作る</span></a></li>
+        <li><a href="#s5"><b>5</b><span>種別ごとの設定をする</span></a></li>
+        <li><a href="#s6"><b>6</b><span>在庫を入れる</span></a></li>
+        <li><a href="#s7"><b>7</b><span>公開する</span></a></li>
+        <li><a href="#s8"><b>8</b><span>パネルを置く</span></a></li>
+        <li><a href="#s9"><b>9</b><span>自分で1件買ってみる</span></a></li>
+        <li><a href="#pay"><b>—</b><span>支払い方法の選び方</span></a></li>
+        <li><a href="#kind"><b>—</b><span>商品の種別</span></a></li>
+        <li><a href="#trouble"><b>—</b><span>つまずきやすいところ</span></a></li>
+        <li><a href="#buyers"><b>—</b><span>購入者への案内</span></a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <section id="steps">
+        <h2>設置の手順</h2>
+
+        <article class="step" id="s1">
+          <div class="step-head">
+            <span class="step-num">1</span>
+            <h3>自販機を使えるようにする</h3>
+          </div>
+          <div class="step-body">
+            <div class="slot"><b>/設定 初期化</b><button class="copy" type="button">コピー</button></div>
+            <p>利用規約が表示されます。同意すると、このサーバーで自販機が使えるようになります。最初に一度だけ実行してください。</p>
+          </div>
+        </article>
+
+        <article class="step" id="s2">
+          <div class="step-head">
+            <span class="step-num">2</span>
+            <h3>売上の受取先を決める</h3>
+          </div>
+          <div class="step-body">
+            <div class="slot"><b>/設定 受取先</b> <i>[会員]</i><button class="copy" type="button">コピー</button></div>
+            <p><code>会員</code> を省略すると、実行したあなた自身が受取先になります。ふつうはそのままで構いません。</p>
+            <div class="note warn">
+              <span class="tag">先にやる</span>
+              <p>受取先を決めないまま商品が売れると、<strong>売上は保留になり、口座には届きません</strong>。代金がなくなるわけではありませんが、あとから手作業で拾う必要が出ます。売り始める前に済ませてください。</p>
+            </div>
+            <p>受取先には<strong>駐銀の口座が必要</strong>です。口座がない相手を指定すると、その場で断られます。</p>
+          </div>
+        </article>
+
+        <article class="step" id="s3">
+          <div class="step-head">
+            <span class="step-num">3</span>
+            <h3>支払い方法を選ぶ</h3>
+          </div>
+          <div class="step-body">
+            <div class="slot"><b>/設定 決済方法</b> <i>方法:&lt;選ぶ&gt; 有効:True</i><button class="copy" type="button">コピー</button></div>
+            <p>3つから選べます。複数を同時に有効にして、購入者に選ばせることもできます。違いは<a href="#pay">支払い方法の選び方</a>にまとめました。</p>
+            <div class="note info">
+              <span class="tag">手動確認を使うなら</span>
+              <p><strong>PayPay 手動確認</strong>を有効にする前に、送金先と確認チャンネルの登録が要ります。先に済ませていないと有効化できません。</p>
+              <div class="slot" style="margin-top:.6rem;margin-bottom:0"><b>/設定 決済</b> <i>paypay_id:&lt;あなたのID&gt; 確認チャンネル:&lt;#チャンネル&gt;</i><button class="copy" type="button">コピー</button></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="step" id="s4">
+          <div class="step-head">
+            <span class="step-num">4</span>
+            <h3>商品を作る</h3>
+          </div>
+          <div class="step-body">
+            <div class="slot"><b>/商品 追加</b> <i>種別:&lt;コード / ロール / ファイル / 手動チケット&gt;</i><button class="copy" type="button">コピー</button></div>
+            <p>種別を選ぶと入力欄が開きます。入れるのは4つです。</p>
+            <ul class="plain">
+              <li><strong>商品名</strong> — 購入者に見える名前</li>
+              <li><strong>説明</strong> — 省略できます</li>
+              <li><strong>価格（円）</strong> — 0以上の整数</li>
+              <li><strong>1人あたりの購入上限</strong> — 空欄なら無制限</li>
+            </ul>
+            <div class="note info">
+              <span class="tag">覚えておく</span>
+              <p>作った直後の商品は<strong>非公開</strong>です。この時点では購入者から見えません。設定を終えてから手順7で公開します。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step" id="s5">
+          <div class="step-head">
+            <span class="step-num">5</span>
+            <h3>種別ごとの設定をする</h3>
+          </div>
+          <div class="step-body">
+            <p>商品を作ると、種別に応じたボタンが出ます。押して設定してください。</p>
+            <div class="scroller">
+              <table>
+                <thead><tr><th>種別</th><th>設定すること</th></tr></thead>
+                <tbody>
+                  <tr><th>コード</th><td class="no">なし（在庫を入れるだけ）</td></tr>
+                  <tr><th>ロール</th><td>渡すロールと、渡し方（ずっと / 期間つき / 重ねがけ / 入れ替え）</td></tr>
+                  <tr><th>ファイル</th><td>ファイルを添付するか、配布URLを渡すか</td></tr>
+                  <tr><th>手動チケット</th><td>注文が届くチャンネル</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note warn">
+              <span class="tag">ロールを渡すなら</span>
+              <p>サーバー設定の「ロール」で、<strong>Bot のロールを渡したいロールより上に置いてください</strong>。下にあると Discord 側で拒否され、ロールを付けられません。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step" id="s6">
+          <div class="step-head">
+            <span class="step-num">6</span>
+            <h3>在庫を入れる</h3>
+          </div>
+          <div class="step-body">
+            <div class="slot"><b>/在庫 追加</b> <i>商品:&lt;選ぶ&gt; [ファイル:&lt;添付&gt;]</i><button class="copy" type="button">コピー</button></div>
+            <ul class="plain">
+              <li><strong>コード</strong> — <code>.txt</code> か <code>.csv</code> を添付（1行に1コード）。省略すると入力欄が開きます</li>
+              <li><strong>ファイル</strong> — 配布したいファイルを添付します（8MBまで）</li>
+              <li><strong>ロール・手動チケット</strong> — 在庫はありません。この手順は不要です</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="step" id="s7">
+          <div class="step-head">
+            <span class="step-num">7</span>
+            <h3>公開する</h3>
+          </div>
+          <div class="step-body">
+            <p>商品の設定画面にある<strong>「公開する」</strong>ボタンを押します。ここで初めて購入者から見えるようになります。</p>
+            <p class="muted">いま何が公開されているかは <code>/商品 一覧</code> で確認できます。</p>
+          </div>
+        </article>
+
+        <article class="step" id="s8">
+          <div class="step-head">
+            <span class="step-num">8</span>
+            <h3>パネルを置く</h3>
+          </div>
+          <div class="step-body">
+            <div class="slot"><b>/自販機 設置</b><button class="copy" type="button">コピー</button></div>
+            <p>実行したチャンネルに購入パネルが置かれます。購入者はここから「商品を選ぶ」を押して買います。</p>
+          </div>
+        </article>
+
+        <article class="step" id="s9">
+          <div class="step-head">
+            <span class="step-num">9</span>
+            <h3>自分で1件買ってみる</h3>
+          </div>
+          <div class="step-body">
+            <p>これが最後の確認です。<strong>実際に売れる状態かどうかは、通してみるまで分かりません。</strong>安い商品を1つ作って、自分で買ってみてください。</p>
+            <p>PayPay リンクで買った場合、精算は5分ごとに動きます。少し待ってから確認してください。</p>
+            <div class="slot"><b>/設定 売上</b><button class="copy" type="button">コピー</button></div>
+            <div class="note info">
+              <span class="tag">通ったサイン</span>
+              <p>「入金済み 1 件」に変わっていれば、購入から精算まで全部つながっています。</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="pay">
+        <h2>支払い方法の選び方</h2>
+        <p><strong>駐銀の口座で売上を受け取れるのは「PayPay リンク（自動受け取り）」だけ</strong>です。ほかの2つは、代金があなたの手元やサーバー内で完結します。</p>
+        <div class="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>残高</th>
+                <th>PayPay リンク<br>（自動受け取り）</th>
+                <th>PayPay 手動確認</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th>代金の行き先</th><td>サーバー内の残高</td><td>運営が受け取り、駐銀の口座へ</td><td>あなたの PayPay に直接</td></tr>
+              <tr><th>購入者の手間</th><td class="yes">ボタンだけ</td><td>リンクを貼る</td><td>送金して取引IDを入力</td></tr>
+              <tr><th>あなたの手間</th><td class="yes">なし</td><td class="yes">なし</td><td>入金を目で確認する</td></tr>
+              <tr><th>駐銀への入金</th><td class="no">なし</td><td class="yes">あり</td><td class="no">なし</td></tr>
+              <tr><th>購入者に口座が要るか</th><td>サーバー内の残高が要る</td><td class="yes">不要</td><td class="yes">不要</td></tr>
+              <tr><th>向いているもの</th><td>イベント景品、サーバー内通貨</td><td>ふつうの販売</td><td>少量・相手が決まっている取引</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note info">
+          <span class="tag">なぜ差があるのか</span>
+          <p>「PayPay リンク」では代金が<strong>いったん運営に入る</strong>ので、そこから駐銀の口座へ振り替えられます。「手動確認」は購入者があなたに直接送るため、運営は代金を預かっておらず、駐銀を経由しません。</p>
+        </div>
+      </section>
+
+      <section id="kind">
+        <h2>商品の種別</h2>
+        <div class="scroller">
+          <table>
+            <thead><tr><th>種別</th><th>渡すもの</th><th>在庫</th><th>向いているもの</th></tr></thead>
+            <tbody>
+              <tr><th>コード</th><td>文字列を1つ</td><td>1行につき1つ</td><td>シリアル、引換コード、招待リンク</td></tr>
+              <tr><th>ロール</th><td>Discord のロール</td><td class="no">なし（何人でも）</td><td>メンバーシップ、権限の販売</td></tr>
+              <tr><th>ファイル</th><td>添付ファイル、または配布URL</td><td class="no">なし（同じものを何度でも）</td><td>画像、資料、素材</td></tr>
+              <tr><th>手動チケット</th><td>あなたが直接対応</td><td class="no">なし</td><td>受注制作、相談、特注の依頼</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">ロールは「ずっと」「期間つき」「重ねがけ」「入れ替え」の4通りの渡し方から選べます。期間つきは、指定した日数が過ぎると自動で外れます。</p>
+      </section>
+
+      <section id="trouble">
+        <h2>つまずきやすいところ</h2>
+
+        <div class="note">
+          <span class="tag">商品が購入者に見えない</span>
+          <p>非公開のままです。商品の設定画面で<strong>「公開する」</strong>を押してください。作った直後は必ず非公開になっています。</p>
+        </div>
+
+        <div class="note">
+          <span class="tag">ロールが付かない</span>
+          <p>Bot のロールが、渡したいロールより下にあります。サーバー設定の「ロール」で Bot を上に動かしてください。連携ロール（他の Bot や課金のロール）は仕組み上どうやっても渡せません。</p>
+        </div>
+
+        <div class="note">
+          <span class="tag">PayPay リンクが受け付けられない</span>
+          <p>次のどちらかです。購入者に伝えてください。</p>
+          <ul class="plain">
+            <li>金額が注文と違う — <strong>ぴったり同じ</strong>である必要があります</li>
+            <li>パスコードが付いている — <strong>パスコードなし</strong>で作り直してもらってください</li>
+          </ul>
+        </div>
+
+        <div class="note">
+          <span class="tag">売上が口座に届かない</span>
+          <p><code>/設定 売上</code> を見てください。</p>
+          <ul class="plain">
+            <li><strong>送信待ち</strong>のまま — 精算は5分ごとです。少し待ってください</li>
+            <li><strong>要対応</strong>がある — 受取先の口座に問題があります。運営にご連絡ください</li>
+            <li>受取先が<strong>未設定</strong> — 手順2を実行してください</li>
+          </ul>
+        </div>
+
+        <div class="note stop">
+          <span class="tag">自分で買っても売上にならない</span>
+          <p>「PayPay 手動確認」と「残高」での購入は、駐銀への入金が発生しません。自分の商品を自分で買っても、口座は増えません。<strong>売上として口座に入るのは、PayPay リンクで実際に代金が動いたときだけ</strong>です。</p>
+        </div>
+      </section>
+
+      <section id="buyers">
+        <h2>購入者への案内</h2>
+        <p>PayPay リンクでの買い方です。そのままサーバーに貼って使えます。</p>
+        <div class="slot" style="white-space:pre-wrap">【PayPay リンクでの買い方】
+1. パネルの「商品を選ぶ」から欲しいものを選ぶ
+2. 表示された金額<b>ちょうど</b>の送金リンクを PayPay アプリで作る
+3. <b>パスコードは付けない</b>
+4. リンクを貼る
+5. PayPay で承認が必要な場合は、アプリで承認する
+
+承認が済めば自動で商品が届きます。<button class="copy" type="button">コピー</button></div>
+        <p class="muted">リンクを貼ってから1分待っても終わらないときは、「承認しました」ボタンが出ます。押すとすぐ確認しにいきます。ふつうはボタンが出る前に終わります。</p>
+      </section>
+
+      <p class="end">
+        分からないことがあれば運営までご連絡ください。<br>
+        この説明書は自販機Bot の現在の仕様に沿っています。
+      </p>
+    </main>
+  </div>
+</div>
+
+<script>
+  // コマンドのコピー。クリップボードが使えない環境では選択状態にして手でコピーしてもらう
+  document.querySelectorAll(".copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var slot = btn.closest(".slot");
+      var text = Array.prototype.filter
+        .call(slot.childNodes, function (n) { return n !== btn; })
+        .map(function (n) { return n.textContent; })
+        .join("")
+        .trim();
+      var done = function (label) {
+        var old = btn.textContent;
+        btn.textContent = label;
+        setTimeout(function () { btn.textContent = old; }, 1600);
+      };
+      var fallback = function () {
+        var r = document.createRange();
+        r.selectNodeContents(slot);
+        var s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+        done("選択しました");
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done("コピーしました"); }, fallback);
+      } else {
+        fallback();
+      }
+    });
+  });
+</script>
