@@ -399,6 +399,7 @@
         <li><a href="#s9"><b>9</b><span>自分で1件買ってみる</span></a></li>
         <li><a href="#pay"><b>—</b><span>支払い方法の選び方</span></a></li>
         <li><a href="#kind"><b>—</b><span>商品の種別</span></a></li>
+        <li><a href="#apply"><b>—</b><span>自動受け取りを申し込む</span></a></li>
         <li><a href="#trouble"><b>—</b><span>つまずきやすいところ</span></a></li>
         <li><a href="#buyers"><b>—</b><span>購入者への案内</span></a></li>
         <li><a href="#terms"><b>—</b><span>利用規約</span></a></li>
@@ -443,7 +444,12 @@
           </div>
           <div class="step-body">
             <div class="slot"><b>/設定 決済方法</b> <i>方法:&lt;選ぶ&gt; 有効:True</i><button class="copy" type="button">コピー</button></div>
-            <p>3つから選べます。複数を同時に有効にして、購入者に選ばせることもできます。違いは<a href="#pay">支払い方法の選び方</a>にまとめました。</p>
+            <p>4つから選べます。複数を同時に有効にして、購入者に選ばせることもできます。違いは<a href="#pay">支払い方法の選び方</a>にまとめました。</p>
+            <div class="note warn">
+              <span class="tag">申し込みが必要</span>
+              <p><strong>PayPay リンク（自動受け取り）は、そのままでは有効にできません。</strong>運営者が代金をお預かりする方式のため、個別のお申し込みと確認が必要です。</p>
+              <p><strong>PayPay 手動確認</strong>なら今すぐ使えます。購入者があなたの PayPay へ直接送金する方式です。まずはこちらで始めて、必要になってから申し込むのが確実です。</p>
+            </div>
             <div class="note info">
               <span class="tag">手動確認を使うなら</span>
               <p><strong>PayPay 手動確認</strong>を有効にする前に、送金先と確認チャンネルの登録が要ります。先に済ませていないと有効化できません。</p>
@@ -576,6 +582,8 @@
             </tbody>
           </table>
         </div>
+        <p><strong>無料（0円の商品）</strong>もあります。配布物や、申し込みの受付に使えます。代金は動きません。</p>
+
         <div class="note info">
           <span class="tag">なぜ差があるのか</span>
           <p>「PayPay リンク」では代金が<strong>いったん運営に入る</strong>ので、そこから駐銀の口座へ振り替えられます。「手動確認」は購入者があなたに直接送るため、運営は代金を預かっておらず、駐銀を経由しません。</p>
@@ -596,6 +604,23 @@
           </table>
         </div>
         <p class="muted">ロールは「ずっと」「期間つき」「重ねがけ」「入れ替え」の4通りの渡し方から選べます。期間つきは、指定した日数が過ぎると自動で外れます。</p>
+      </section>
+
+      <section id="apply">
+        <h2>自動受け取りを申し込む</h2>
+        <p><strong>PayPay リンク（自動受け取り）</strong>は、運営者が代金をお預かりして、売上をあなたの駐銀口座へ振り替える方式です。お金をお預かりする以上、どなたにでも提供できるものではありません。</p>
+        <p>専門家の助言により、<strong>面識のある方に限ってご提供しています。</strong>それ以外の方には <strong>PayPay 手動確認</strong>をご案内しています。こちらは購入者があなたへ直接送金するので、運営者は代金に一切触れません。</p>
+
+        <div class="note info">
+          <span class="tag">申し込みの流れ</span>
+          <ul class="plain">
+            <li>駐銀の自販機にある<strong>「自動受け取りの申し込み」</strong>から手続きしてください</li>
+            <li>あなたと担当者だけが見えるチャンネルが作られます</li>
+            <li>そこで確認のうえ、有効にします</li>
+          </ul>
+        </div>
+
+        <p class="muted">申し込みまでの間も、PayPay 手動確認・残高・無料の商品は制限なくご利用いただけます。</p>
       </section>
 
       <section id="trouble">
@@ -835,6 +860,7 @@
       </section>
 
       <p class="end">
+        Discord 内では <code>/ヘルプ</code> でも調べられます。<br>
         分からないことがあれば運営までご連絡ください。<br>
         この説明書は自販機Bot の現在の仕様に沿っています。
       </p>
