@@ -616,15 +616,39 @@
           <ul class="plain">
             <li>駐銀の自販機にある<strong>「自動受け取りの申し込み」</strong>から手続きしてください</li>
             <li>あなたと担当者だけが見えるチャンネルが作られます</li>
-            <li>そこで確認のうえ、有効にします</li>
+            <li>そこで確認のうえ、運営が許可します</li>
           </ul>
         </div>
+
+        <div class="note warn">
+          <span class="tag">許可のあとにもう一手</span>
+          <p><strong>許可が下りただけでは購入画面に出ません。</strong>ご自分のサーバーで有効にする操作が別に必要です。</p>
+          <div class="slot" style="margin-bottom:0"><b>/設定 決済方法</b> <i>方法:PayPay リンク（自動受け取り） 有効:True</i><button class="copy" type="button">コピー</button></div>
+        </div>
+
+        <p>許可は「使ってよい」という運営の判断、有効化は「実際に使う」というあなたの設定です。<strong>二段階に分かれています。</strong></p>
 
         <p class="muted">申し込みまでの間も、PayPay 手動確認・残高・無料の商品は制限なくご利用いただけます。</p>
       </section>
 
       <section id="trouble">
         <h2>つまずきやすいところ</h2>
+
+        <div class="note">
+          <span class="tag">PayPay リンクが購入画面に出ない</span>
+          <p>許可は下りていても、<strong>ご自分で有効にする操作</strong>が必要です。<code>/設定 決済方法</code> で「PayPay リンク（自動受け取り）」を有効にしてください。</p>
+          <p>「まだご利用いただけません」と断られる場合は、許可がまだです。<a href="#apply">自動受け取りを申し込む</a>をご覧ください。</p>
+        </div>
+
+        <div class="note">
+          <span class="tag">エラーが出た</span>
+          <p>エラーには<strong>原因と直し方</strong>が一緒に表示されます。多くは次のどちらかです。</p>
+          <ul class="plain">
+            <li><strong>初期設定がまだ</strong> — <code>/設定 初期化</code> を実行してください</li>
+            <li><strong>Bot の権限が足りない</strong> — サーバー設定 ▸ ロール ▸ このBotのロール で付けてください</li>
+          </ul>
+          <p>原因が特定できなかった場合は<strong>識別子</strong>が表示されます。運営へお伝えいただければ調査できます。</p>
+        </div>
 
         <div class="note">
           <span class="tag">商品が購入者に見えない</span>
