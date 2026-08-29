@@ -1,0 +1,562 @@
+<title>自販機の編集台</title>
+<style>
+  /* 説明書（index.html）と同じ配色・書体。別ページだが同じ道具立てに見せる */
+  :root {
+    color-scheme: light;
+    --ground:#EEF1F4; --panel:#FFFFFF; --slot:#1B2128; --slot-ink:#DCE3EA;
+    --ink:#141A21; --muted:#57646F; --hair:#D2D9DF; --hair-firm:#B4BFC8;
+    --brass:#8A6420; --brass-dim:#EDE3D0;
+    --ok:#256D48; --warn:#8A5A0C; --stop:#97332F; --stop-bg:#F7E4E2;
+    --f-jp:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic Medium","Noto Sans JP","Meiryo",system-ui,sans-serif;
+    --f-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Hiragino Kaku Gothic ProN",monospace;
+    --rule:1px solid var(--hair);
+    /* Discord の実際の色。テーマに追随させない（あちらの見え方を再現するため） */
+    --dc-bg:#313338; --dc-embed:#2B2D31; --dc-text:#DBDEE1; --dc-muted:#949BA4;
+    --dc-link:#00A8FC; --dc-blurple:#5865F2; --dc-grey:#4E5058;
+    --dc-green:#248046; --dc-red:#DA373C;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground:#10151A; --panel:#192027; --slot:#0B0F13; --slot-ink:#C8D3DC;
+      --ink:#E3E9EF; --muted:#94A1AD; --hair:#2A333C; --hair-firm:#3C4854;
+      --brass:#D6A445; --brass-dim:#3A2F1B;
+      --ok:#67C293; --warn:#E0A63F; --stop:#E8807C; --stop-bg:#2E1B1A;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:#10151A; --panel:#192027; --slot:#0B0F13; --slot-ink:#C8D3DC;
+    --ink:#E3E9EF; --muted:#94A1AD; --hair:#2A333C; --hair-firm:#3C4854;
+    --brass:#D6A445; --brass-dim:#3A2F1B;
+    --ok:#67C293; --warn:#E0A63F; --stop:#E8807C; --stop-bg:#2E1B1A;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-jp);
+       font-size:15px;line-height:1.85;-webkit-font-smoothing:antialiased}
+  a{color:var(--brass)}
+  :focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 clamp(1rem,3vw,2.4rem)}
+  header.top{border-bottom:1px solid var(--hair-firm);padding:clamp(2rem,5vw,3.2rem) 0 1.4rem}
+  .eyebrow{font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
+           font-weight:600;margin:0 0 .8rem}
+  h1{font-size:clamp(1.7rem,1.1rem+2.2vw,2.5rem);line-height:1.35;margin:0 0 .7rem;font-weight:700}
+  .lede{color:var(--muted);max-width:44em;margin:0}
+
+  section{padding:clamp(1.8rem,3.5vw,2.6rem) 0 0}
+  h2{font-size:1.2rem;margin:0 0 1rem;padding-bottom:.6rem;
+     border-bottom:1px solid var(--hair-firm);font-weight:700}
+  h2 .num{font-family:var(--f-mono);color:var(--brass);margin-right:.6rem}
+  p{margin:0 0 .9rem;max-width:42em}
+  .muted{color:var(--muted);font-size:.9rem}
+
+  .card{background:var(--panel);border:1px solid var(--hair-firm);border-radius:5px;
+        padding:1rem 1.1rem;margin:0 0 1rem}
+  .drop{border:2px dashed var(--hair-firm);border-radius:5px;padding:2rem 1rem;text-align:center;
+        background:var(--panel);transition:border-color .15s,background .15s;cursor:pointer}
+  .drop.over{border-color:var(--brass);background:var(--brass-dim)}
+
+  button,select,input,textarea{font:inherit;color:inherit}
+  .btn{background:var(--brass);color:var(--ground);border:none;border-radius:4px;
+       padding:.5rem 1.1rem;font-weight:700;cursor:pointer;font-size:.9rem}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--hair-firm)}
+
+  label{display:block;font-size:.78rem;font-weight:700;color:var(--muted);
+        letter-spacing:.04em;margin:.9rem 0 .3rem}
+  input[type=text],input[type=number],textarea,select{
+    width:100%;background:var(--ground);border:1px solid var(--hair-firm);border-radius:4px;
+    padding:.45rem .6rem;font-size:.92rem}
+  textarea{min-height:5.5rem;resize:vertical;line-height:1.7}
+  .count{float:right;font-weight:400;font-family:var(--f-mono);font-size:.72rem}
+  .count.over{color:var(--stop);font-weight:700}
+
+  .grid{display:grid;gap:1.4rem}
+  @media (min-width:1000px){ .grid.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+
+  table{border-collapse:collapse;width:100%;font-size:.88rem}
+  th,td{text-align:left;padding:.5rem .6rem;border-bottom:var(--rule);vertical-align:top}
+  thead th{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+           white-space:nowrap}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--brass-dim)}
+  tbody tr.on{background:var(--brass-dim);box-shadow:inset 3px 0 0 var(--brass)}
+  .scroller{overflow-x:auto;border:1px solid var(--hair-firm);border-radius:5px;background:var(--panel)}
+  .tag{display:inline-block;font-size:.68rem;font-weight:700;padding:.05rem .45rem;
+       border-radius:3px;background:var(--hair);color:var(--ink);white-space:nowrap}
+  .tag.on{background:var(--ok);color:var(--ground)}
+  .tag.off{background:var(--hair-firm);color:var(--ground)}
+  .tag.edited{background:var(--brass);color:var(--ground)}
+
+  .warnbox{border:1px solid var(--stop);background:var(--stop-bg);border-radius:4px;
+           padding:.7rem .9rem;margin:0 0 .9rem;font-size:.88rem}
+  .warnbox b{color:var(--stop)}
+
+  /* ---------- Discord の再現 ---------- */
+  .sim{background:var(--dc-bg);border-radius:6px;padding:1rem;
+       font-family:"gg sans","Noto Sans JP",var(--f-jp);color:var(--dc-text);font-size:15px;line-height:1.4}
+  .sim .row{display:flex;gap:.7rem;align-items:flex-start}
+  .sim .av{width:38px;height:38px;border-radius:50%;background:var(--dc-blurple);flex:none;
+           display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+  .sim .name{font-weight:600;font-size:14px;color:#F2F3F5}
+  .sim .bot{background:var(--dc-blurple);color:#fff;font-size:10px;font-weight:600;
+            padding:0 .3rem;border-radius:3px;margin-left:.35rem;vertical-align:1px}
+  .sim .stamp{color:var(--dc-muted);font-size:11px;margin-left:.4rem}
+  .embed{margin-top:.4rem;background:var(--dc-embed);border-radius:4px;
+         border-left:4px solid var(--dc-blurple);padding:.65rem .8rem .7rem;max-width:520px}
+  .embed .etitle{font-weight:600;font-size:15px;color:#F2F3F5;margin-bottom:.3rem;overflow-wrap:anywhere}
+  .embed .edesc{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--dc-text)}
+  .embed img{max-width:100%;border-radius:4px;margin-top:.55rem;display:block}
+  .embed .efoot{margin-top:.5rem;font-size:12px;color:var(--dc-muted)}
+  .embed .ph{margin-top:.55rem;border:1px dashed var(--dc-muted);border-radius:4px;
+             padding:1.4rem;text-align:center;color:var(--dc-muted);font-size:12px}
+  .btns{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;max-width:520px}
+  .dbtn{border:none;border-radius:3px;padding:.42rem .9rem;font-size:14px;font-weight:500;
+        color:#fff;background:var(--dc-blurple);cursor:default;font-family:inherit}
+  .dbtn.secondary{background:var(--dc-grey)}
+  .dbtn.success{background:var(--dc-green)}
+  .dbtn.danger{background:var(--dc-red)}
+  .sim code{background:#1E1F22;border-radius:3px;padding:.1em .3em;font-size:85%;
+            font-family:var(--f-mono)}
+  .sim pre{background:#1E1F22;border:1px solid #2B2D31;border-radius:4px;padding:.5rem .7rem;
+           margin:.3rem 0;overflow-x:auto;font-size:85%;font-family:var(--f-mono);white-space:pre-wrap}
+  .sim a{color:var(--dc-link);text-decoration:none}
+
+  .picker{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
+  .chip{border:1px solid var(--hair-firm);background:var(--panel);border-radius:99px;
+        padding:.25rem .8rem;font-size:.82rem;cursor:pointer}
+  .chip.on{background:var(--brass);color:var(--ground);border-color:var(--brass);font-weight:700}
+
+  .out{background:var(--slot);color:var(--slot-ink);border-radius:4px;padding:.8rem 1rem;
+       font-family:var(--f-mono);font-size:.78rem;white-space:pre-wrap;overflow-x:auto;
+       max-height:16rem;overflow-y:auto}
+  footer{margin:3.5rem 0 4rem;padding-top:1.2rem;border-top:1px solid var(--hair-firm);
+         font-size:.85rem;color:var(--muted)}
+  .hide{display:none}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">駐銀 自販機Bot</p>
+    <h1>自販機の編集台</h1>
+    <p class="lede">
+      商品とパネルをここで編集し、設定ファイルを作ります。Discord での見え方はその場で確認できます。
+      <strong>読み込んだ内容はこのブラウザから出ません。</strong>
+    </p>
+  </header>
+
+  <section id="load">
+    <h2><span class="num">1</span>書き出しを読み込む</h2>
+    <p>Discord で <code>/設定 書き出し</code>（出品者）または <code>/運営 書き出し</code>（運営）を実行し、
+      添付された <code>.json</code> をここに置いてください。</p>
+    <div class="drop" id="drop">
+      <p style="margin:0"><strong>ファイルをドロップ</strong>、またはクリックして選択</p>
+      <p class="muted" style="margin:.4rem 0 0">まだ書き出しが無ければ、下の見本で試せます</p>
+      <input type="file" id="file" accept=".json,application/json" class="hide">
+    </div>
+    <p style="margin-top:.8rem">
+      <button class="btn ghost" id="sample">見本を読み込む</button>
+      <span class="muted" id="loaded" style="margin-left:.8rem"></span>
+    </p>
+    <div id="loaderr"></div>
+  </section>
+
+  <section id="products" class="hide">
+    <h2><span class="num">2</span>商品を編集する</h2>
+    <p class="muted">行を選ぶと編集できます。<strong>種別・在庫方式・中身は変えられません</strong>（変えると在庫や払い出しの前提が崩れるため、作り直してください）。</p>
+    <div class="grid two">
+      <div>
+        <div class="scroller">
+          <table>
+            <thead><tr><th>商品</th><th>価格</th><th>種別</th><th>状態</th></tr></thead>
+            <tbody id="plist"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="pedit" class="card"><p class="muted" style="margin:0">左の一覧から商品を選んでください。</p></div>
+    </div>
+  </section>
+
+  <section id="panel" class="hide">
+    <h2><span class="num">3</span>パネルを作る</h2>
+    <div class="grid two">
+      <div>
+        <div class="card">
+          <label>並べる商品<span class="count" id="pcount"></span></label>
+          <div class="picker" id="ppick"></div>
+
+          <label for="ptitle">見出し<span class="count" id="ctitle"></span></label>
+          <input type="text" id="ptitle" placeholder="自動販売機">
+
+          <label for="pdesc">説明<span class="count" id="cdesc"></span></label>
+          <textarea id="pdesc" placeholder="下のボタンから商品を選んで購入できます。"></textarea>
+
+          <label for="pcolor">左端の色</label>
+          <input type="text" id="pcolor" value="#5865F2" placeholder="#5865F2">
+
+          <label for="pimage">画像のURL（任意・空なら画像なし）</label>
+          <input type="text" id="pimage" placeholder="https://...">
+
+          <label for="pkey">パネルの名前（取り込み時の目印）</label>
+          <input type="text" id="pkey" value="main">
+        </div>
+      </div>
+      <div>
+        <p class="muted" style="margin-bottom:.5rem">Discord での見え方</p>
+        <div class="sim" id="sim"></div>
+        <div id="limits" style="margin-top:.8rem"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="save" class="hide">
+    <h2><span class="num">4</span>設定ファイルを保存する</h2>
+    <p>保存した <code>.json</code> を Discord で <code>/運営 取り込み</code> に添付すると反映されます。
+      <strong>取り込む前に差分が表示されます。</strong></p>
+    <p>
+      <button class="btn" id="dl">設定ファイルを保存</button>
+      <button class="btn ghost" id="show">中身を見る</button>
+    </p>
+    <div class="out hide" id="json"></div>
+  </section>
+
+  <footer>
+    このページは読み込んだ内容を送信しません。すべてブラウザの中で処理しています。<br>
+    設定ファイルの形式は v1 です。Bot 側が対応していない版は取り込めません。
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var st = { data: null, guild: null, sel: null, edits: {}, panel: {
+    key: "main", title: "", desc: "", color: "#5865F2", image: "", products: []
+  } };
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---- 見本。書き出しが無くても触って確かめられるようにする ----
+  var SAMPLE = {
+    version: 1, kind: "vending-export", exported_at: new Date().toISOString(), scope: "guild",
+    guilds: [{
+      id: "1535640105274834975", name: "見本サーバー",
+      settings: { suspended: 0, paypay_auto_allowed: 1, receipt_mode: "off",
+                  enabled_adapters: ["internal-wallet", "paypay-auto"] },
+      products: [
+        { id: 12, name: "壁紙セット", description: "高解像度の壁紙10点", price: 1200,
+          per_user_limit: null, status: "active", driver: "file", stock_mode: "unlimited",
+          available: null, driver_config: { method: "external" }, updated_at: "2026-08-20T10:00:00.000Z" },
+        { id: 34, name: "支援ロール（30日）", description: "サーバー内で色が変わります", price: 500,
+          per_user_limit: 1, status: "active", driver: "role", stock_mode: "unlimited",
+          available: null, driver_config: { method: "timed", duration_days: 30 },
+          updated_at: "2026-08-21T09:00:00.000Z" },
+        { id: 56, name: "引換コード", description: null, price: 300, per_user_limit: null,
+          status: "draft", driver: "code", stock_mode: "items", available: 8,
+          driver_config: {}, updated_at: "2026-08-22T12:00:00.000Z" }
+      ],
+      panels: [], stats: { orders_30d: 12, revenue_30d: 14400 }
+    }]
+  };
+
+  var DRIVER = { code: "コード", role: "ロール", file: "ファイル", ticket: "手動チケット", bundle: "セット" };
+  var LIMIT = { title: 256, desc: 4096, label: 80 };
+
+  // ---- 読み込み ----
+  function load(obj) {
+    $("loaderr").innerHTML = "";
+    var bad = function (m) {
+      $("loaderr").innerHTML = '<div class="warnbox"><b>読み込めません</b><br>' + esc(m) + "</div>";
+      return false;
+    };
+    if (!obj || typeof obj !== "object") return bad("JSON として読めませんでした。");
+    if (obj.kind !== "vending-export") return bad("これは書き出しファイルではありません（kind が " + esc(String(obj.kind)) + "）。");
+    if (obj.version !== 1) return bad("対応していない版です（version " + esc(String(obj.version)) + "）。Bot と管理ツールの版を合わせてください。");
+    if (!Array.isArray(obj.guilds) || !obj.guilds.length) return bad("サーバーの情報が入っていません。");
+
+    st.data = obj; st.guild = obj.guilds[0]; st.sel = null; st.edits = {};
+    st.panel.products = [];
+    $("loaded").textContent = st.guild.name + "（商品 " + (st.guild.products || []).length + " 件）";
+    ["products", "panel", "save"].forEach(function (id) { $(id).classList.remove("hide"); });
+    drawList(); drawPicker(); drawEdit(); sim();
+    return true;
+  }
+
+  function readFile(f) {
+    var r = new FileReader();
+    r.onload = function () {
+      var o = null;
+      try { o = JSON.parse(String(r.result)); }
+      catch (e) { o = null; }
+      if (o === null) {
+        $("loaderr").innerHTML = '<div class="warnbox"><b>読み込めません</b><br>JSON として解釈できませんでした。書き出したファイルをそのままお使いください。</div>';
+        return;
+      }
+      load(o);
+    };
+    r.readAsText(f);
+  }
+
+  var drop = $("drop");
+  drop.addEventListener("click", function () { $("file").click(); });
+  $("file").addEventListener("change", function (e) { if (e.target.files[0]) readFile(e.target.files[0]); });
+  ["dragenter", "dragover"].forEach(function (n) {
+    drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.add("over"); });
+  });
+  ["dragleave", "drop"].forEach(function (n) {
+    drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.remove("over"); });
+  });
+  drop.addEventListener("drop", function (e) {
+    if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+  });
+  $("sample").addEventListener("click", function () { load(JSON.parse(JSON.stringify(SAMPLE))); });
+
+  // ---- 商品 ----
+  function cur(p) {
+    var e = st.edits[p.id] || {};
+    return {
+      name: e.name !== undefined ? e.name : p.name,
+      description: e.description !== undefined ? e.description : (p.description || ""),
+      price: e.price !== undefined ? e.price : p.price,
+      per_user_limit: e.per_user_limit !== undefined ? e.per_user_limit : p.per_user_limit,
+      status: e.status !== undefined ? e.status : p.status
+    };
+  }
+  function edited(id) { return Object.keys(st.edits[id] || {}).length > 0; }
+
+  function drawList() {
+    var tb = $("plist"); tb.innerHTML = "";
+    (st.guild.products || []).forEach(function (p) {
+      var c = cur(p), tr = document.createElement("tr");
+      if (st.sel === p.id) tr.className = "on";
+      tr.innerHTML =
+        "<td><strong>" + esc(c.name) + "</strong>" +
+          (edited(p.id) ? ' <span class="tag edited">編集</span>' : "") +
+          '<br><span class="muted">#' + p.id + "</span></td>" +
+        "<td>" + Number(c.price).toLocaleString() + "円</td>" +
+        "<td>" + esc(DRIVER[p.driver] || p.driver) +
+          (p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
+        '<td><span class="tag ' + (c.status === "active" ? "on" : "off") + '">' +
+          (c.status === "active" ? "公開" : "非公開") + "</span></td>";
+      tr.addEventListener("click", function () { st.sel = p.id; drawList(); drawEdit(); });
+      tb.appendChild(tr);
+    });
+  }
+
+  function drawEdit() {
+    var box = $("pedit");
+    if (st.sel == null) {
+      box.innerHTML = '<p class="muted" style="margin:0">左の一覧から商品を選んでください。</p>';
+      return;
+    }
+    var p = st.guild.products.filter(function (x) { return x.id === st.sel; })[0];
+    var c = cur(p);
+    box.innerHTML =
+      "<p style='margin:0 0 .2rem'><strong>#" + p.id + "</strong> " +
+        '<span class="tag">' + esc(DRIVER[p.driver] || p.driver) + "</span></p>" +
+      '<p class="muted" style="margin:0 0 .6rem">種別・在庫方式・中身は変えられません</p>' +
+      '<label for="e_name">商品名<span class="count" id="c_name"></span></label>' +
+      '<input type="text" id="e_name" value="' + esc(c.name) + '">' +
+      '<label for="e_desc">説明<span class="count" id="c_desc"></span></label>' +
+      '<textarea id="e_desc">' + esc(c.description) + "</textarea>" +
+      '<label for="e_price">価格（円）</label>' +
+      '<input type="number" id="e_price" min="0" step="1" value="' + Number(c.price) + '">' +
+      '<label for="e_limit">1人あたりの購入上限（空欄＝無制限）</label>' +
+      '<input type="number" id="e_limit" min="1" step="1" value="' +
+        (c.per_user_limit == null ? "" : c.per_user_limit) + '">' +
+      '<label for="e_status">状態</label>' +
+      '<select id="e_status">' +
+        '<option value="active"' + (c.status === "active" ? " selected" : "") + ">公開（自販機に並ぶ）</option>" +
+        '<option value="draft"' + (c.status !== "active" ? " selected" : "") + ">非公開</option>" +
+      "</select>" +
+      '<p style="margin-top:1rem"><button class="btn ghost" id="e_reset">この商品の編集を取り消す</button></p>';
+
+    var save = function (k, v) {
+      var e = st.edits[p.id] || (st.edits[p.id] = {});
+      var same = String(v) === String(k === "description" ? (p.description || "") : p[k]);
+      if (same) delete e[k]; else e[k] = v;
+      if (!Object.keys(e).length) delete st.edits[p.id];
+      drawList(); drawPicker(); sim();
+    };
+    $("e_name").addEventListener("input", function (e) {
+      save("name", e.target.value); count("c_name", e.target.value.length, LIMIT.label);
+    });
+    $("e_desc").addEventListener("input", function (e) {
+      save("description", e.target.value); count("c_desc", e.target.value.length, LIMIT.desc);
+    });
+    $("e_price").addEventListener("input", function (e) { save("price", Number(e.target.value || 0)); });
+    $("e_limit").addEventListener("input", function (e) {
+      save("per_user_limit", e.target.value === "" ? null : Number(e.target.value));
+    });
+    $("e_status").addEventListener("change", function (e) { save("status", e.target.value); });
+    $("e_reset").addEventListener("click", function () {
+      delete st.edits[p.id]; drawList(); drawEdit(); drawPicker(); sim();
+    });
+    count("c_name", c.name.length, LIMIT.label);
+    count("c_desc", (c.description || "").length, LIMIT.desc);
+  }
+
+  function count(id, n, max) {
+    var el = $(id); if (!el) return;
+    el.textContent = n + " / " + max;
+    el.className = "count" + (n > max ? " over" : "");
+  }
+
+  // ---- パネル ----
+  function drawPicker() {
+    var box = $("ppick"); box.innerHTML = "";
+    (st.guild.products || []).forEach(function (p) {
+      var c = cur(p);
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (st.panel.products.indexOf(p.id) >= 0 ? " on" : "");
+      b.textContent = c.name;
+      b.addEventListener("click", function () {
+        var i = st.panel.products.indexOf(p.id);
+        if (i >= 0) st.panel.products.splice(i, 1); else st.panel.products.push(p.id);
+        drawPicker(); sim();
+      });
+      box.appendChild(b);
+    });
+    $("pcount").textContent = st.panel.products.length + " 件選択";
+  }
+
+  ["ptitle", "pdesc", "pcolor", "pimage", "pkey"].forEach(function (id) {
+    $(id).addEventListener("input", function (e) {
+      var k = { ptitle: "title", pdesc: "desc", pcolor: "color", pimage: "image", pkey: "key" }[id];
+      st.panel[k] = e.target.value;
+      sim();
+    });
+  });
+
+  // ---- Discord の書式を再現する ----
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+  function md(s) {
+    var t = esc(s);
+    // コードブロックを先に退避（中の記号を解釈させない）
+    var blocks = [];
+    t = t.replace(/```([\s\S]*?)```/g, function (m, c) {
+      blocks.push(c.replace(/^\w*\n/, "")); // 目印に数字だけを使わない。「価格は 100 円」のような文章が化ける
+      return "\uE000" + (blocks.length - 1) + "\uE000";
+    });
+    t = t.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+    t = t.replace(/\*\*\*(.+?)\*\*\*/g, "<b><i>$1</i></b>");
+    t = t.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    t = t.replace(/__(.+?)__/g, "<u>$1</u>");
+    t = t.replace(/~~(.+?)~~/g, "<s>$1</s>");
+    t = t.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<i>$2</i>");
+    t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a>$1</a>');
+    t = t.replace(/(^|\s)(https?:\/\/\S+)/g, "$1<a>$2</a>");
+    t = t.replace(/\uE000(\d+)\uE000/g, function (m, i) { return "<pre>" + blocks[i] + "</pre>"; });
+    return t;
+  }
+
+  function sim() {
+    var picked = (st.guild ? st.guild.products : []).filter(function (p) {
+      return st.panel.products.indexOf(p.id) >= 0;
+    });
+    var single = picked.length === 1 ? cur(picked[0]) : null;
+
+    var title = st.panel.title.trim() ||
+      (single ? single.name : "自動販売機");
+    var desc = st.panel.desc.trim() ||
+      (single
+        ? [single.description, "**" + Number(single.price).toLocaleString() + "円**"].filter(Boolean).join("\n\n")
+        : "下のボタンから商品を選んで購入できます。");
+
+    var color = /^#[0-9a-fA-F]{6}$/.test(st.panel.color.trim()) ? st.panel.color.trim() : "#5865F2";
+
+    var btns = picked.length > 1
+      ? picked.map(function (p) { return '<button class="dbtn">' + esc(cur(p).name) + "</button>"; }).join("")
+      : '<button class="dbtn">' + (picked.length === 1 ? "購入する" : "商品を見る") + "</button>";
+
+    $("sim").innerHTML =
+      '<div class="row">' +
+        '<div class="av">CVM</div>' +
+        "<div style='min-width:0;flex:1'>" +
+          '<div><span class="name">CVM</span><span class="bot">アプリ</span>' +
+            '<span class="stamp">今日 12:00</span></div>' +
+          '<div class="embed" style="border-left-color:' + esc(color) + '">' +
+            '<div class="etitle">' + md(title) + "</div>" +
+            '<div class="edesc">' + md(desc) + "</div>" +
+            (st.panel.image.trim()
+              ? '<div class="ph">画像: ' + esc(st.panel.image.trim().slice(0, 60)) + "</div>"
+              : "") +
+          "</div>" +
+          '<div class="btns">' + btns + "</div>" +
+        "</div>" +
+      "</div>";
+
+    count("ctitle", title.length, LIMIT.title);
+    count("cdesc", desc.length, LIMIT.desc);
+
+    // ---- 上限と落とし穴を先に出す ----
+    var w = [];
+    if (title.length > LIMIT.title) w.push("見出しが " + LIMIT.title + " 文字を超えています。Discord が受け付けません。");
+    if (desc.length > LIMIT.desc) w.push("説明が " + LIMIT.desc + " 文字を超えています。");
+    picked.forEach(function (p) {
+      var c = cur(p);
+      if (picked.length > 1 && c.name.length > LIMIT.label)
+        w.push("「" + c.name + "」はボタンの文字数上限（" + LIMIT.label + "）を超えています。");
+      if (c.status !== "active")
+        w.push("「" + c.name + "」は非公開です。このままでは購入できません。");
+    });
+    if (picked.length > 5) w.push("ボタンは1行5つまでです。" + picked.length + " 件だと折り返されます。");
+    if (picked.length > 25) w.push("1つのパネルに置けるのは25件までです。");
+    $("limits").innerHTML = w.length
+      ? '<div class="warnbox"><b>確認してください</b><ul style="margin:.4rem 0 0;padding-left:1.2rem">' +
+        w.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>"
+      : '<p class="muted" style="margin:0">上限にかかっているものはありません。</p>';
+  }
+
+  // ---- 書き出し ----
+  function build() {
+    var products = Object.keys(st.edits).map(function (id) {
+      var p = st.guild.products.filter(function (x) { return String(x.id) === String(id); })[0];
+      var o = { id: p.id, base_updated_at: p.updated_at || null };
+      Object.keys(st.edits[id]).forEach(function (k) { o[k] = st.edits[id][k]; });
+      return o;
+    });
+    var out = {
+      version: 1, kind: "vending-import", generated_at: new Date().toISOString(),
+      guild_id: st.guild.id, products: products, panels: []
+    };
+    if (st.panel.products.length) {
+      out.panels.push({
+        key: st.panel.key.trim() || "main",
+        title: st.panel.title.trim() || null,
+        description: st.panel.desc.trim() || null,
+        color: st.panel.color.trim() || null,
+        image: st.panel.image.trim() || null,
+        products: st.panel.products.slice()
+      });
+    }
+    return out;
+  }
+
+  $("show").addEventListener("click", function () {
+    var el = $("json");
+    el.textContent = JSON.stringify(build(), null, 2);
+    el.classList.toggle("hide");
+  });
+
+  $("dl").addEventListener("click", function () {
+    var data = build();
+    if (!data.products.length && !data.panels.length) {
+      alert("変更がありません。商品を編集するか、パネルに商品を選んでください。");
+      return;
+    }
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "vending-" + st.guild.id + "-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+})();
+</script>
