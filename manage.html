@@ -125,6 +125,8 @@
            margin:.3rem 0;overflow-x:auto;font-size:85%;font-family:var(--f-mono);white-space:pre-wrap}
   .sim a{color:var(--dc-link);text-decoration:none}
 
+  .note-fresh{border:1px solid var(--brass);background:var(--brass-dim);border-radius:4px;
+              padding:.7rem .9rem;margin:0 0 1rem;font-size:.88rem}
   .tabs{display:flex;gap:.4rem;margin:2rem 0 0;border-bottom:1px solid var(--hair-firm)}
   .tab{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);
        padding:.7rem 1.1rem;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:-1px}
@@ -177,6 +179,17 @@
       <button class="btn ghost" id="sample">見本を読み込む</button>
       <span class="muted" id="loaded" style="margin-left:.8rem"></span>
     </p>
+
+    <div class="card" style="margin-top:1.2rem">
+      <p style="margin:0 0 .4rem"><strong>書き出しを使わずに、新しい商品だけ作る</strong></p>
+      <p class="muted" style="margin:0 0 .7rem">
+        まだ商品が無いサーバーなど、書き出すものが無いときはこちら。
+        <strong>作った商品だけでパネルも作れます</strong>（既存の商品は扱えません）。
+      </p>
+      <p style="margin:0">
+        <button class="btn ghost" id="fresh">新規作成をはじめる</button>
+      </p>
+    </div>
     <div id="loaderr"></div>
   </section>
 
@@ -220,6 +233,12 @@
   <section id="pane-l" class="pane hide">
     <h2>パネルを作る</h2>
     <p class="muted">1回の設置で1枚です。<strong>置いた内容で確定</strong>し、あとから編集はできません（変えたい場合は設置し直してください）。</p>
+    <div id="freshnote" class="note-fresh hide">
+      <p style="margin:0"><strong>新規作成の状態です。</strong>
+        いま作っている商品だけを並べられます。取り込むと商品が作られ、
+        <strong>そのとき Bot が設置できるパネルのファイルを返します</strong>。
+        ここで作るパネルは、その下書きとして商品のファイルに入ります。</p>
+    </div>
     <div class="grid two">
       <div>
         <div class="card">
@@ -290,7 +309,7 @@
   "use strict";
   // 新規商品の仮ID。負数にして既存（正のID）と混ざらないようにする
   var nextNew = -1;
-  var st = { data: null, guild: null, sel: null, edits: {}, adds: [], dels: [], panel: {
+  var st = { data: null, guild: null, sel: null, fresh: false, edits: {}, adds: [], dels: [], panel: {
     key: "main", title: "", desc: "", color: "#5865F2",
     // ★ 画像の中身は設定ファイルに入れない。確認用に持つだけで、書き出すのは名前と要否のみ
     imageName: "", imageUrl: "", products: [],
@@ -342,7 +361,8 @@
     if (!Array.isArray(obj.guilds) || !obj.guilds.length) return bad("サーバーの情報が入っていません。");
 
     st.data = obj; st.guild = obj.guilds[0]; st.sel = null; st.edits = {};
-    st.adds = []; st.dels = []; nextNew = -1;
+    st.adds = []; st.dels = []; nextNew = -1; st.fresh = false;
+    $("freshnote").classList.add("hide");
     st.panel.products = [];
     $("loaded").textContent = st.guild.name + "（商品 " + (st.guild.products || []).length + " 件）";
     $("tabs").classList.remove("hide");
@@ -393,6 +413,30 @@
     if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
   });
   $("sample").addEventListener("click", function () { load(JSON.parse(JSON.stringify(SAMPLE))); });
+
+  /**
+   * 書き出し無しで始める。
+   *
+   * ★ 既存の商品を知らないので、**扱えるのは新しく作るものだけ**。
+   *   パネルもその中からしか組めない（既存商品の ID が分からないため）。
+   */
+  $("fresh").addEventListener("click", function () {
+    var gid = (prompt("サーバーIDを入力してください（Discord で右クリック →「サーバーIDをコピー」）") || "").trim();
+    if (!/^\d{5,25}$/.test(gid)) {
+      if (gid) alert("サーバーIDは数字です。");
+      return;
+    }
+    load({
+      version: 1, kind: "vending-export", exported_at: new Date().toISOString(), scope: "fresh",
+      guilds: [{ id: gid, name: "（新規作成）", settings: {}, products: [], panels: [],
+                 roles: [], channels: [], stats: null }]
+    });
+    st.fresh = true;
+    $("loaded").textContent = "新規作成（サーバー " + gid + "）";
+    $("freshnote").classList.remove("hide");
+    // すぐ1件目を作れる状態にする
+    $("padd").click();
+  });
 
   // ---- 商品の追加 ----
   // ★ 種別ごとに要るものが違う。ロール/チャンネルは書き出しに入っている一覧から選ばせる。
@@ -785,8 +829,9 @@
     });
     if (picked.length > 5) w.push("ボタンは1行5つまでです。" + picked.length + " 件だと折り返されます。");
     if (picked.length > 25) w.push("1つのパネルに置けるのは25件までです。");
-    // ★ 新しい商品はまだ ID が決まっていない。パネルには載せられない
-    if (picked.some(function (p) { return p.id < 0; }))
+    // ★ 新しい商品はまだ ID が決まっていない。
+    //   新規作成のときは Bot が取り込み時に解決するので警告しない
+    if (!st.fresh && picked.some(function (p) { return p.id < 0; }))
       w.push("新しく作る商品はパネルに載せられません。先に取り込んで作成してから、もう一度書き出してください。");
     if ($("size")) refreshSize();
     $("limits").innerHTML = w.length
@@ -819,6 +864,26 @@
       // ★ 削除は明示的にだけ。書き出しに無いものを消す挙動は作らない
       delete_products: st.dels.slice()
     };
+
+    // ★ 新規作成でパネルも作った場合、**下書き**として同梱する。
+    //   商品の ID は取り込むまで決まらないので、new_products の**何番目か**で指す。
+    //   Bot が作成後に実 ID へ解決し、設置できるパネルのファイルを返す。
+    if (st.fresh && st.panel.products.length) {
+      var idx = {};
+      st.adds.forEach(function (p, k) { idx[p.id] = k; });
+      out.panel_draft = {
+        key: st.panel.key.trim() || "main",
+        title: st.panel.title.trim() || null,
+        description: st.panel.desc.trim() || null,
+        color: st.panel.color || null,
+        image: st.panel.imageName ? { required: true, filename: st.panel.imageName } : null,
+        buttons: st.panel.products
+          .filter(function (id) { return idx[id] !== undefined; })
+          .map(function (id) {
+            return { new_index: idx[id], style: st.panel.styles[id] || "primary" };
+          })
+      };
+    }
     return out;
   }
 
@@ -912,13 +977,23 @@
     download(data, "products");
   });
 
-  $("dlp").addEventListener("click", function () { download(buildPanel(), "panel"); });
+  function panelBlocked() {
+    if (!st.fresh) return false;
+    alert("新規作成では、パネルは商品のファイルに下書きとして入ります。\n" +
+          "商品のファイルを取り込むと、Bot が設置できるパネルのファイルを返します。");
+    return true;
+  }
+  $("dlp").addEventListener("click", function () {
+    if (panelBlocked()) return;
+    download(buildPanel(), "panel");
+  });
   $("showp").addEventListener("click", function () {
     var el = $("json");
     el.textContent = JSON.stringify(buildPanel(), null, 2);
     el.classList.remove("hide");
   });
   $("copyp").addEventListener("click", function () {
+    if (panelBlocked()) return;
     copyText(JSON.stringify(buildPanel()), $("copyp"));
   });
 })();
