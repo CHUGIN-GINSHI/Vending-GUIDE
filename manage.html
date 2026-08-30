@@ -115,6 +115,7 @@
   .btns{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;max-width:520px}
   .dbtn{border:none;border-radius:3px;padding:.42rem .9rem;font-size:14px;font-weight:500;
         color:#fff;background:var(--dc-blurple);cursor:default;font-family:inherit}
+  .dbtn.primary{background:var(--dc-blurple)}
   .dbtn.secondary{background:var(--dc-grey)}
   .dbtn.success{background:var(--dc-green)}
   .dbtn.danger{background:var(--dc-red)}
@@ -129,6 +130,10 @@
     border-radius:4px;background:var(--ground);cursor:pointer;flex:none}
   .colorrow input[type=text]{font-family:var(--f-mono);text-transform:uppercase}
   .imgrow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:.4rem}
+  .styles{margin-top:.8rem;border-top:var(--rule);padding-top:.7rem}
+  .styles .r{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
+  .styles .r span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.88rem}
+  .styles select{width:auto;flex:none}
   .picker{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
   .chip{border:1px solid var(--hair-firm);background:var(--panel);border-radius:99px;
         padding:.25rem .8rem;font-size:.82rem;cursor:pointer}
@@ -192,6 +197,8 @@
         <div class="card">
           <label>並べる商品<span class="count" id="pcount"></span></label>
           <div class="picker" id="ppick"></div>
+
+          <div id="styles"></div>
 
           <label for="ptitle">見出し<span class="count" id="ctitle"></span></label>
           <input type="text" id="ptitle" placeholder="自動販売機">
@@ -261,7 +268,9 @@
   var st = { data: null, guild: null, sel: null, edits: {}, panel: {
     key: "main", title: "", desc: "", color: "#5865F2",
     // ★ 画像の中身は設定ファイルに入れない。確認用に持つだけで、書き出すのは名前と要否のみ
-    imageName: "", imageUrl: "", products: []
+    imageName: "", imageUrl: "", products: [],
+    // ボタンの見た目。Discord は任意の色を受け付けず、4種類から選ぶ
+    styles: {}, browseStyle: "primary"
   } };
   var $ = function (id) { return document.getElementById(id); };
 
@@ -289,6 +298,10 @@
   };
 
   var DRIVER = { code: "コード", role: "ロール", file: "ファイル", ticket: "手動チケット", bundle: "セット" };
+  // ★ Discord のボタンは**任意の色を指定できない**。この4種類だけ
+  var STYLES = [
+    ["primary", "青（既定）"], ["secondary", "灰"], ["success", "緑"], ["danger", "赤"]
+  ];
   var LIMIT = { title: 256, desc: 4096, label: 80 };
 
   // ---- 読み込み ----
@@ -448,6 +461,39 @@
       box.appendChild(b);
     });
     $("pcount").textContent = st.panel.products.length + " 件選択";
+    drawStyles();
+  }
+
+  /** ボタンの見た目。Discord は4種類しか受け付けないので、色の自由入力は出さない */
+  function drawStyles() {
+    var box = $("styles");
+    var opts = function (v) {
+      return STYLES.map(function (o) {
+        return '<option value="' + o[0] + '"' + (v === o[0] ? " selected" : "") + ">" + o[1] + "</option>";
+      }).join("");
+    };
+    var rows;
+    if (st.panel.products.length) {
+      rows = st.panel.products.map(function (id) {
+        var p = st.guild.products.filter(function (x) { return x.id === id; })[0];
+        if (!p) return "";
+        return '<div class="r"><span>' + esc(cur(p).name) + "</span>" +
+               '<select data-pid="' + id + '">' + opts(st.panel.styles[id] || "primary") + "</select></div>";
+      }).join("");
+    } else {
+      rows = '<div class="r"><span>商品を見る</span>' +
+             '<select data-browse="1">' + opts(st.panel.browseStyle) + "</select></div>";
+    }
+    box.innerHTML = '<div class="styles"><label style="margin-top:0">ボタンの見た目' +
+      '<span class="count" style="font-weight:400">Discord は4種類のみ</span></label>' + rows + "</div>";
+
+    box.querySelectorAll("select").forEach(function (sel) {
+      sel.addEventListener("change", function (e) {
+        if (e.target.dataset.browse) st.panel.browseStyle = e.target.value;
+        else st.panel.styles[e.target.dataset.pid] = e.target.value;
+        sim();
+      });
+    });
   }
 
   ["ptitle", "pdesc", "pkey"].forEach(function (id) {
@@ -532,9 +578,14 @@
 
     var color = /^#[0-9a-fA-F]{6}$/.test(st.panel.color) ? st.panel.color : "#5865F2";
 
+    var sty = function (id) { return st.panel.styles[id] || "primary"; };
     var btns = picked.length > 1
-      ? picked.map(function (p) { return '<button class="dbtn">' + esc(cur(p).name) + "</button>"; }).join("")
-      : '<button class="dbtn">' + (picked.length === 1 ? "購入する" : "商品を見る") + "</button>";
+      ? picked.map(function (p) {
+          return '<button class="dbtn ' + sty(p.id) + '">' + esc(cur(p).name) + "</button>";
+        }).join("")
+      : picked.length === 1
+        ? '<button class="dbtn ' + sty(picked[0].id) + '">購入する</button>'
+        : '<button class="dbtn ' + st.panel.browseStyle + '">商品を見る</button>';
 
     $("sim").innerHTML =
       '<div class="row">' +
@@ -596,7 +647,12 @@
         color: st.panel.color || null,
         // ★ 中身は入れない。取り込み後に Bot が公開前へ提示を求める
         image: st.panel.imageName ? { required: true, filename: st.panel.imageName } : null,
-        products: st.panel.products.slice()
+        // 順序と見た目をまとめて持つ。products だけだと見た目が別管理になる
+        buttons: st.panel.products.length
+          ? st.panel.products.map(function (id) {
+              return { product: id, style: st.panel.styles[id] || "primary" };
+            })
+          : [{ browse: true, style: st.panel.browseStyle }]
       });
     }
     return out;
