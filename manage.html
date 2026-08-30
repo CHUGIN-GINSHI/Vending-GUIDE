@@ -238,6 +238,7 @@
       <p style="margin:0"><strong>新規作成の状態です。</strong>
         いま作っている商品だけを並べられます。取り込むと商品が作られ、
         <strong>そのとき Bot が設置できるパネルのファイルを返します</strong>。
+        作られた商品は<strong>非公開</strong>なので、設置の前に Discord で公開してください。
         ここで作るパネルは、その下書きとして商品のファイルに入ります。</p>
     </div>
     <div class="grid two">
@@ -493,8 +494,8 @@
         "<td>" + Number(c.price).toLocaleString() + "円</td>" +
         "<td>" + esc(DRIVER[p.driver] || p.driver) +
           (p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
-        '<td><span class="tag ' + (c.status === "active" ? "on" : "off") + '">' +
-          (c.status === "active" ? "公開" : "非公開") + "</span></td>";
+        '<td><span class="tag ' + (p.id < 0 ? "off" : c.status === "active" ? "on" : "off") + '">' +
+          (p.id < 0 ? "非公開" : c.status === "active" ? "公開" : "非公開") + "</span></td>";
       tr.addEventListener("click", function () { st.sel = p.id; drawList(); drawEdit(); });
       tb.appendChild(tr);
     });
@@ -528,11 +529,18 @@
       '<input type="number" id="e_limit" min="1" step="1" value="' +
         (c.per_user_limit == null ? "" : c.per_user_limit) + '">' +
       (isNew ? newExtra(p) : "") +
-      '<label for="e_status">状態</label>' +
-      '<select id="e_status">' +
-        '<option value="active"' + (c.status === "active" ? " selected" : "") + ">公開（自販機に並ぶ）</option>" +
-        '<option value="draft"' + (c.status !== "active" ? " selected" : "") + ">非公開</option>" +
-      "</select>" +
+      // ★ 新しく作る商品に公開の選択を出さない（2026-08-30）。
+      //   作成は必ず非公開で、公開は Discord での明示操作。
+      //   ここで選ばせると「編集台では公開にできるのに実際はならない」が起きる
+      (isNew
+        ? '<p class="muted" style="margin:.9rem 0 0;font-size:.82rem">' +
+          "作られた直後は<strong>非公開</strong>です。中身を確認してから、" +
+          "Discord の <code>/商品 一覧</code> で公開してください。</p>"
+        : '<label for="e_status">状態</label>' +
+          '<select id="e_status">' +
+            '<option value="active"' + (c.status === "active" ? " selected" : "") + ">公開（自販機に並ぶ）</option>" +
+            '<option value="draft"' + (c.status !== "active" ? " selected" : "") + ">非公開</option>" +
+          "</select>") +
       '<p style="margin-top:1rem">' +
         '<button class="btn ghost" id="e_reset">編集を取り消す</button> ' +
         '<button class="btn ghost" id="e_del">' + (isDel ? "削除をやめる" : "削除する") + "</button></p>";
@@ -558,7 +566,8 @@
     $("e_limit").addEventListener("input", function (e) {
       save("per_user_limit", e.target.value === "" ? null : Number(e.target.value));
     });
-    $("e_status").addEventListener("change", function (e) { save("status", e.target.value); });
+    if ($("e_status"))
+      $("e_status").addEventListener("change", function (e) { save("status", e.target.value); });
     $("e_reset").addEventListener("click", function () {
       if (isNew) {
         st.adds = st.adds.filter(function (x) { return x.id !== p.id; });
@@ -823,7 +832,9 @@
       var c = cur(p);
       if (picked.length > 1 && c.name.length > LIMIT.label)
         w.push("「" + c.name + "」はボタンの文字数上限（" + LIMIT.label + "）を超えています。");
-      if (c.status !== "active")
+      if (p.id < 0)
+        w.push("「" + c.name + "」は作成後は非公開です。設置の前に Discord で公開してください。");
+      else if (c.status !== "active")
         w.push("「" + c.name + "」は非公開です。このままでは購入できません。");
     });
     if (picked.length > 5) w.push("ボタンは1行5つまでです。" + picked.length + " 件だと折り返されます。");
@@ -854,10 +865,11 @@
       guild_id: st.guild.id || undefined,
       products: products,
       // 新しく作るもの。id を持たない＝作成、と Bot 側が判別する
+      // ★ status は入れない。作成は必ず非公開で、Bot が決める
       new_products: st.adds.map(function (p) {
         return {
           name: p.name, description: p.description || null, price: p.price,
-          per_user_limit: p.per_user_limit, status: p.status,
+          per_user_limit: p.per_user_limit,
           driver: p.driver, stock_mode: p.stock_mode, driver_config: p.driver_config
         };
       }),
