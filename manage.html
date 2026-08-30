@@ -176,7 +176,8 @@
 
   <section id="products" class="hide">
     <h2><span class="num">2</span>商品を編集する</h2>
-    <p class="muted">行を選ぶと編集できます。<strong>種別・在庫方式・中身は変えられません</strong>（変えると在庫や払い出しの前提が崩れるため、作り直してください）。</p>
+    <p class="muted">行を選ぶと編集できます。既存商品の<strong>種別は変えられません</strong>（変えると在庫や払い出しの前提が崩れます）。</p>
+    <p><button class="btn" id="padd">商品を追加</button></p>
     <div class="grid two">
       <div>
         <div class="scroller">
@@ -265,7 +266,9 @@
 <script>
 (function () {
   "use strict";
-  var st = { data: null, guild: null, sel: null, edits: {}, panel: {
+  // 新規商品の仮ID。負数にして既存（正のID）と混ざらないようにする
+  var nextNew = -1;
+  var st = { data: null, guild: null, sel: null, edits: {}, adds: [], dels: [], panel: {
     key: "main", title: "", desc: "", color: "#5865F2",
     // ★ 画像の中身は設定ファイルに入れない。確認用に持つだけで、書き出すのは名前と要否のみ
     imageName: "", imageUrl: "", products: [],
@@ -317,6 +320,7 @@
     if (!Array.isArray(obj.guilds) || !obj.guilds.length) return bad("サーバーの情報が入っていません。");
 
     st.data = obj; st.guild = obj.guilds[0]; st.sel = null; st.edits = {};
+    st.adds = []; st.dels = []; nextNew = -1;
     st.panel.products = [];
     $("loaded").textContent = st.guild.name + "（商品 " + (st.guild.products || []).length + " 件）";
     ["products", "panel", "save"].forEach(function (id) { $(id).classList.remove("hide"); });
@@ -353,6 +357,27 @@
   });
   $("sample").addEventListener("click", function () { load(JSON.parse(JSON.stringify(SAMPLE))); });
 
+  // ---- 商品の追加 ----
+  // ★ 種別ごとに要るものが違う。ロール/チャンネルは書き出しに入っている一覧から選ばせる。
+  //   ファイルの実体は JSON に入れられないので、公開前に Bot が求める。
+  var NEEDS = {
+    code: { stock: "items", note: "取り込んだあと Discord で `/在庫 追加` からコードを入れてください。" },
+    file: { stock: "unlimited", note: "配布URLを入力するか、公開前に Bot がファイルの提示を求めます。" },
+    role: { stock: "unlimited", note: "配るロールを選んでください。" },
+    ticket: { stock: "unlimited", note: "うまく作れなかったときの受付先チャンネルを選んでください。" }
+  };
+
+  $("padd").addEventListener("click", function () {
+    var id = nextNew--;
+    st.adds.push({
+      id: id, name: "新しい商品", description: "", category: null, price: 0,
+      per_user_limit: null, status: "draft", driver: "code",
+      stock_mode: NEEDS.code.stock, available: 0, driver_config: {}, updated_at: null
+    });
+    st.sel = id;
+    drawList(); drawEdit(); drawPicker();
+  });
+
   // ---- 商品 ----
   function cur(p) {
     var e = st.edits[p.id] || {};
@@ -366,15 +391,25 @@
   }
   function edited(id) { return Object.keys(st.edits[id] || {}).length > 0; }
 
+  /** 既存＋新規。新規は負のID */
+  function allProducts() {
+    return (st.guild.products || []).concat(st.adds);
+  }
+
   function drawList() {
     var tb = $("plist"); tb.innerHTML = "";
-    (st.guild.products || []).forEach(function (p) {
+    allProducts().forEach(function (p) {
+      var del = st.dels.indexOf(p.id) >= 0;
       var c = cur(p), tr = document.createElement("tr");
       if (st.sel === p.id) tr.className = "on";
+      if (del) tr.style.opacity = ".45";
       tr.innerHTML =
-        "<td><strong>" + esc(c.name) + "</strong>" +
-          (edited(p.id) ? ' <span class="tag edited">編集</span>' : "") +
-          '<br><span class="muted">#' + p.id + "</span></td>" +
+        "<td><strong" + (del ? ' style="text-decoration:line-through"' : "") + ">" +
+          esc(c.name) + "</strong>" +
+          (del ? ' <span class="tag off">削除</span>'
+               : p.id < 0 ? ' <span class="tag edited">新規</span>'
+               : edited(p.id) ? ' <span class="tag edited">編集</span>' : "") +
+          '<br><span class="muted">' + (p.id < 0 ? "新しい商品" : "#" + p.id) + "</span></td>" +
         "<td>" + Number(c.price).toLocaleString() + "円</td>" +
         "<td>" + esc(DRIVER[p.driver] || p.driver) +
           (p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
@@ -391,12 +426,18 @@
       box.innerHTML = '<p class="muted" style="margin:0">左の一覧から商品を選んでください。</p>';
       return;
     }
-    var p = st.guild.products.filter(function (x) { return x.id === st.sel; })[0];
+    var p = allProducts().filter(function (x) { return x.id === st.sel; })[0];
+    if (!p) { box.innerHTML = '<p class="muted" style="margin:0">選び直してください。</p>'; return; }
     var c = cur(p);
+    var isNew = p.id < 0;
+    var isDel = st.dels.indexOf(p.id) >= 0;
     box.innerHTML =
-      "<p style='margin:0 0 .2rem'><strong>#" + p.id + "</strong> " +
+      "<p style='margin:0 0 .2rem'><strong>" + (isNew ? "新しい商品" : "#" + p.id) + "</strong> " +
         '<span class="tag">' + esc(DRIVER[p.driver] || p.driver) + "</span></p>" +
-      '<p class="muted" style="margin:0 0 .6rem">種別・在庫方式・中身は変えられません</p>' +
+      '<p class="muted" style="margin:0 0 .6rem">' +
+        (isNew ? "取り込むと作成されます" : "種別・在庫方式は変えられません") + "</p>" +
+      (isDel ? '<div class="warnbox"><b>削除の予定です</b><br>取り込むとこの商品は消えます。' +
+               "注文の記録がある商品は削除できず、非公開になります。</div>" : "") +
       '<label for="e_name">商品名<span class="count" id="c_name"></span></label>' +
       '<input type="text" id="e_name" value="' + esc(c.name) + '">' +
       '<label for="e_desc">説明<span class="count" id="c_desc"></span></label>' +
@@ -406,14 +447,21 @@
       '<label for="e_limit">1人あたりの購入上限（空欄＝無制限）</label>' +
       '<input type="number" id="e_limit" min="1" step="1" value="' +
         (c.per_user_limit == null ? "" : c.per_user_limit) + '">' +
+      (isNew ? newExtra(p) : "") +
       '<label for="e_status">状態</label>' +
       '<select id="e_status">' +
         '<option value="active"' + (c.status === "active" ? " selected" : "") + ">公開（自販機に並ぶ）</option>" +
         '<option value="draft"' + (c.status !== "active" ? " selected" : "") + ">非公開</option>" +
       "</select>" +
-      '<p style="margin-top:1rem"><button class="btn ghost" id="e_reset">この商品の編集を取り消す</button></p>';
+      '<p style="margin-top:1rem">' +
+        '<button class="btn ghost" id="e_reset">編集を取り消す</button> ' +
+        '<button class="btn ghost" id="e_del">' + (isDel ? "削除をやめる" : "削除する") + "</button></p>";
 
     var save = function (k, v) {
+      if (isNew) {
+        var self2 = st.adds.filter(function (x) { return x.id === p.id; })[0];
+        self2[k] = v; drawList(); drawPicker(); sim(); return;
+      }
       var e = st.edits[p.id] || (st.edits[p.id] = {});
       var same = String(v) === String(k === "description" ? (p.description || "") : p[k]);
       if (same) delete e[k]; else e[k] = v;
@@ -432,10 +480,89 @@
     });
     $("e_status").addEventListener("change", function (e) { save("status", e.target.value); });
     $("e_reset").addEventListener("click", function () {
-      delete st.edits[p.id]; drawList(); drawEdit(); drawPicker(); sim();
+      if (isNew) {
+        st.adds = st.adds.filter(function (x) { return x.id !== p.id; });
+        st.sel = null;
+      } else delete st.edits[p.id];
+      drawList(); drawEdit(); drawPicker(); sim();
     });
+    $("e_del").addEventListener("click", function () {
+      if (isNew) {
+        st.adds = st.adds.filter(function (x) { return x.id !== p.id; });
+        st.sel = null;
+      } else {
+        var i2 = st.dels.indexOf(p.id);
+        if (i2 >= 0) st.dels.splice(i2, 1); else st.dels.push(p.id);
+        // 削除する商品はパネルからも外す
+        var j = st.panel.products.indexOf(p.id);
+        if (j >= 0 && st.dels.indexOf(p.id) >= 0) st.panel.products.splice(j, 1);
+      }
+      drawList(); drawEdit(); drawPicker(); sim();
+    });
+    if (isNew) {
+      var self = st.adds.filter(function (x) { return x.id === p.id; })[0];
+      var d = $("e_driver");
+      if (d) d.addEventListener("change", function (e) {
+        self.driver = e.target.value;
+        self.stock_mode = NEEDS[self.driver].stock;
+        self.driver_config = {};   // 種別が変われば固有設定は作り直し
+        drawList(); drawEdit();
+      });
+      var r = $("e_role");
+      if (r) {
+        self.driver_config.role_id = self.driver_config.role_id || r.value;
+        r.addEventListener("change", function (e) { self.driver_config.role_id = e.target.value; });
+      }
+      var ch = $("e_chan");
+      if (ch) {
+        self.driver_config.channel_id = self.driver_config.channel_id || ch.value;
+        ch.addEventListener("change", function (e) { self.driver_config.channel_id = e.target.value; });
+      }
+      var u = $("e_url");
+      if (u) u.addEventListener("input", function (e) {
+        var v = e.target.value.trim();
+        if (v) { self.driver_config.method = "external"; self.driver_config.url = v; }
+        else { delete self.driver_config.url; self.driver_config.method = "attach"; }
+      });
+    }
     count("c_name", c.name.length, LIMIT.label);
     count("c_desc", (c.description || "").length, LIMIT.desc);
+  }
+
+  /** 新規商品だけに出す欄。種別と、種別ごとに要るもの */
+  function newExtra(p) {
+    var roles = (st.guild.roles || []).filter(function (r) { return r.assignable !== false; });
+    var chans = st.guild.channels || [];
+    var h =
+      '<label for="e_driver">種別</label><select id="e_driver">' +
+        Object.keys(NEEDS).map(function (d) {
+          return '<option value="' + d + '"' + (p.driver === d ? " selected" : "") + ">" +
+                 esc(DRIVER[d]) + "</option>";
+        }).join("") + "</select>";
+    if (p.driver === "role") {
+      h += '<label for="e_role">配るロール</label><select id="e_role">' +
+        (roles.length
+          ? roles.map(function (r) {
+              return '<option value="' + r.id + '"' +
+                (p.driver_config.role_id === r.id ? " selected" : "") + ">" + esc(r.name) + "</option>";
+            }).join("")
+          : '<option value="">（選べるロールがありません）</option>') + "</select>";
+    }
+    if (p.driver === "ticket") {
+      h += '<label for="e_chan">受付先チャンネル</label><select id="e_chan">' +
+        (chans.length
+          ? chans.map(function (c) {
+              return '<option value="' + c.id + '"' +
+                (p.driver_config.channel_id === c.id ? " selected" : "") + ">#" + esc(c.name) + "</option>";
+            }).join("")
+          : '<option value="">（チャンネルがありません）</option>') + "</select>";
+    }
+    if (p.driver === "file") {
+      h += '<label for="e_url">配布URL（空なら公開前にファイルを求めます）</label>' +
+           '<input type="text" id="e_url" value="' + esc(p.driver_config.url || "") + '">';
+    }
+    return h + '<p class="muted" style="margin:.5rem 0 0;font-size:.82rem">' +
+           esc(NEEDS[p.driver].note) + "</p>";
   }
 
   function count(id, n, max) {
@@ -447,7 +574,8 @@
   // ---- パネル ----
   function drawPicker() {
     var box = $("ppick"); box.innerHTML = "";
-    (st.guild.products || []).forEach(function (p) {
+    allProducts().forEach(function (p) {
+      if (st.dels.indexOf(p.id) >= 0) return;   // 削除予定はパネルに出さない
       var c = cur(p);
       var b = document.createElement("button");
       b.type = "button";
@@ -564,7 +692,7 @@
   }
 
   function sim() {
-    var picked = (st.guild ? st.guild.products : []).filter(function (p) {
+    var picked = (st.guild ? allProducts() : []).filter(function (p) {
       return st.panel.products.indexOf(p.id) >= 0;
     });
     var single = picked.length === 1 ? cur(picked[0]) : null;
@@ -620,6 +748,9 @@
     });
     if (picked.length > 5) w.push("ボタンは1行5つまでです。" + picked.length + " 件だと折り返されます。");
     if (picked.length > 25) w.push("1つのパネルに置けるのは25件までです。");
+    // ★ 新しい商品はまだ ID が決まっていない。パネルには載せられない
+    if (picked.some(function (p) { return p.id < 0; }))
+      w.push("新しく作る商品はパネルに載せられません。先に取り込んで作成してから、もう一度書き出してください。");
     if ($("size")) refreshSize();
     $("limits").innerHTML = w.length
       ? '<div class="warnbox"><b>確認してください</b><ul style="margin:.4rem 0 0;padding-left:1.2rem">' +
@@ -630,14 +761,27 @@
   // ---- 書き出し ----
   function build() {
     var products = Object.keys(st.edits).map(function (id) {
-      var p = st.guild.products.filter(function (x) { return String(x.id) === String(id); })[0];
+      var p = (st.guild.products || []).filter(function (x) { return String(x.id) === String(id); })[0];
+      if (!p) return null;
       var o = { id: p.id, base_updated_at: p.updated_at || null };
       Object.keys(st.edits[id]).forEach(function (k) { o[k] = st.edits[id][k]; });
       return o;
-    });
+    }).filter(Boolean);
     var out = {
       version: 1, kind: "vending-import", generated_at: new Date().toISOString(),
-      guild_id: st.guild.id, products: products, panels: []
+      guild_id: st.guild.id,
+      products: products,
+      // 新しく作るもの。id を持たない＝作成、と Bot 側が判別する
+      new_products: st.adds.map(function (p) {
+        return {
+          name: p.name, description: p.description || null, price: p.price,
+          per_user_limit: p.per_user_limit, status: p.status,
+          driver: p.driver, stock_mode: p.stock_mode, driver_config: p.driver_config
+        };
+      }),
+      // ★ 削除は明示的にだけ。書き出しに無いものを消す挙動は作らない
+      delete_products: st.dels.slice(),
+      panels: []
     };
     if (st.panel.products.length) {
       out.panels.push({
@@ -705,8 +849,9 @@
 
   $("dl").addEventListener("click", function () {
     var data = build();
-    if (!data.products.length && !data.panels.length) {
-      alert("変更がありません。商品を編集するか、パネルに商品を選んでください。");
+    if (!data.products.length && !data.new_products.length &&
+        !data.delete_products.length && !data.panels.length) {
+      alert("変更がありません。商品を編集・追加・削除するか、パネルに商品を選んでください。");
       return;
     }
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
