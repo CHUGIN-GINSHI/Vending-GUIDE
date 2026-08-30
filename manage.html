@@ -99,7 +99,7 @@
        font-family:"gg sans","Noto Sans JP",var(--f-jp);color:var(--dc-text);font-size:15px;line-height:1.4}
   .sim .row{display:flex;gap:.7rem;align-items:flex-start}
   .sim .av{width:38px;height:38px;border-radius:50%;background:var(--dc-blurple);flex:none;
-           display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+           display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;object-fit:cover}
   .sim .name{font-weight:600;font-size:14px;color:#F2F3F5}
   .sim .bot{background:var(--dc-blurple);color:#fff;font-size:10px;font-weight:600;
             padding:0 .3rem;border-radius:3px;margin-left:.35rem;vertical-align:1px}
@@ -236,7 +236,15 @@
       <strong>取り込む前に差分が表示されます。</strong></p>
     <p>
       <button class="btn" id="dl">設定ファイルを保存</button>
+      <button class="btn ghost" id="copy">文字をコピー</button>
       <button class="btn ghost" id="show">中身を見る</button>
+      <span class="muted" id="size" style="margin-left:.6rem"></span>
+    </p>
+    <div id="sizewarn"></div>
+    <p class="muted">
+      スマートフォンではファイルの保存が扱いにくいことがあります。その場合は
+      <strong>「文字をコピー」</strong>して Discord に貼り付けてください。
+      ただし<strong>貼り付けには文字数の上限</strong>があります（下に表示）。
     </p>
     <div class="out hide" id="json"></div>
   </section>
@@ -530,7 +538,7 @@
 
     $("sim").innerHTML =
       '<div class="row">' +
-        '<div class="av">CVM</div>' +
+        '<img class="av" src="bot-avatar.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'av\',textContent:\'CVM\'}))">' +
         "<div style='min-width:0;flex:1'>" +
           '<div><span class="name">CVM</span><span class="bot">アプリ</span>' +
             '<span class="stamp">今日 12:00</span></div>' +
@@ -561,6 +569,7 @@
     });
     if (picked.length > 5) w.push("ボタンは1行5つまでです。" + picked.length + " 件だと折り返されます。");
     if (picked.length > 25) w.push("1つのパネルに置けるのは25件までです。");
+    if ($("size")) refreshSize();
     $("limits").innerHTML = w.length
       ? '<div class="warnbox"><b>確認してください</b><ul style="margin:.4rem 0 0;padding-left:1.2rem">' +
         w.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>"
@@ -592,6 +601,45 @@
     }
     return out;
   }
+
+  // 貼り付け先の上限。超えるならファイルで渡すしかない
+  var PASTE = { modal: 4000, message: 2000 };
+
+  function refreshSize() {
+    var t = JSON.stringify(build());
+    var n = t.length;
+    $("size").textContent = n.toLocaleString() + " 文字";
+    var w = "";
+    if (n > PASTE.modal) {
+      w = "<b>貼り付けでは渡せません</b>（" + n.toLocaleString() + " 文字。上限 " +
+          PASTE.modal.toLocaleString() + " 文字）。<strong>ファイルを保存して添付</strong>してください。";
+    } else if (n > PASTE.message) {
+      w = "メッセージへの貼り付けには長すぎます（上限 " + PASTE.message.toLocaleString() +
+          " 文字）。<strong>入力欄への貼り付け</strong>をお使いください。";
+    }
+    $("sizewarn").innerHTML = w ? '<div class="warnbox">' + w + "</div>" : "";
+    return t;
+  }
+
+  $("copy").addEventListener("click", function () {
+    var t = refreshSize();
+    var done = function (msg) {
+      var b = $("copy"), old = b.textContent;
+      b.textContent = msg;
+      setTimeout(function () { b.textContent = old; }, 1800);
+    };
+    // ★ 失敗したら黙らず、選択状態にして手でコピーできるようにする
+    var fallback = function () {
+      var el = $("json");
+      el.textContent = t; el.classList.remove("hide");
+      var r = document.createRange(); r.selectNodeContents(el);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      done("選択しました");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(function () { done("コピーしました"); }, fallback);
+    } else fallback();
+  });
 
   $("show").addEventListener("click", function () {
     var el = $("json");
