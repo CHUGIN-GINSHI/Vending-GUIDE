@@ -125,6 +125,12 @@
            margin:.3rem 0;overflow-x:auto;font-size:85%;font-family:var(--f-mono);white-space:pre-wrap}
   .sim a{color:var(--dc-link);text-decoration:none}
 
+  .tabs{display:flex;gap:.4rem;margin:2rem 0 0;border-bottom:1px solid var(--hair-firm)}
+  .tab{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);
+       padding:.7rem 1.1rem;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:-1px}
+  .tab.on{color:var(--ink);border-bottom-color:var(--brass)}
+  .tab:hover{color:var(--ink)}
+  .pane{padding-top:1.6rem}
   .colorrow{display:flex;gap:.5rem;align-items:center}
   .colorrow input[type=color]{width:3rem;height:2.2rem;padding:2px;border:1px solid var(--hair-firm);
     border-radius:4px;background:var(--ground);cursor:pointer;flex:none}
@@ -159,7 +165,7 @@
   </header>
 
   <section id="load">
-    <h2><span class="num">1</span>書き出しを読み込む</h2>
+    <h2>書き出しを読み込む</h2>
     <p>Discord で <code>/設定 書き出し</code>（出品者）または <code>/運営 書き出し</code>（運営）を実行し、
       添付された <code>.json</code> をここに置いてください。</p>
     <div class="drop" id="drop">
@@ -174,8 +180,14 @@
     <div id="loaderr"></div>
   </section>
 
-  <section id="products" class="hide">
-    <h2><span class="num">2</span>商品を編集する</h2>
+  <nav id="tabs" class="tabs hide">
+    <button class="tab on" data-pane="pane-p">商品を編集する</button>
+    <button class="tab" data-pane="pane-l">パネルを作る</button>
+  </nav>
+
+  <!-- ============ 商品 ============ -->
+  <section id="pane-p" class="pane hide">
+    <h2>商品を編集する</h2>
     <p class="muted">行を選ぶと編集できます。既存商品の<strong>種別は変えられません</strong>（変えると在庫や払い出しの前提が崩れます）。</p>
     <p><button class="btn" id="padd">商品を追加</button></p>
     <div class="grid two">
@@ -189,10 +201,25 @@
       </div>
       <div id="pedit" class="card"><p class="muted" style="margin:0">左の一覧から商品を選んでください。</p></div>
     </div>
+
+    <div class="card" style="margin-top:1.4rem">
+      <p style="margin:0 0 .5rem"><strong>商品のファイルを保存</strong>
+        <span class="muted">— <code>/設定 取り込み</code> に渡します</span></p>
+      <p class="muted" style="margin:0 0 .7rem">更新・追加・削除がまとめて入ります。<strong>取り込む前に差分が表示されます。</strong></p>
+      <p style="margin:0">
+        <button class="btn" id="dl">保存</button>
+        <button class="btn ghost" id="copy">文字をコピー</button>
+        <button class="btn ghost" id="show">中身を見る</button>
+        <span class="muted" id="size" style="margin-left:.6rem"></span>
+      </p>
+      <div id="sizewarn" style="margin-top:.7rem"></div>
+    </div>
   </section>
 
-  <section id="panel" class="hide">
-    <h2><span class="num">3</span>パネルを作る</h2>
+  <!-- ============ パネル ============ -->
+  <section id="pane-l" class="pane hide">
+    <h2>パネルを作る</h2>
+    <p class="muted">1回の設置で1枚です。<strong>置いた内容で確定</strong>し、あとから編集はできません（変えたい場合は設置し直してください）。</p>
     <div class="grid two">
       <div>
         <div class="card">
@@ -221,12 +248,12 @@
             <input type="file" id="pimgfile" accept="image/*" class="hide">
           </div>
           <p class="muted" style="margin:.5rem 0 0;font-size:.82rem">
-            ここで選んだ画像は<strong>見え方の確認だけ</strong>に使います。設定ファイルには
-            <strong>「画像が要る」ことと元のファイル名</strong>しか入りません。
-            実際の画像は取り込みのあと、Bot が公開前に提示を求めます。
+            ここで選んだ画像は<strong>見え方の確認だけ</strong>に使います。ファイルには
+            <strong>「画像が要る」ことと名前</strong>しか入りません。
+            実際の画像は<strong>設置のときに一緒に添付</strong>してください。
           </p>
 
-          <label for="pkey">パネルの名前（取り込み時の目印）</label>
+          <label for="pkey">パネルの名前（記録に残ります）</label>
           <input type="text" id="pkey" value="main">
         </div>
       </div>
@@ -234,48 +261,23 @@
         <p class="muted" style="margin-bottom:.5rem">Discord での見え方</p>
         <div class="sim" id="sim"></div>
         <div id="limits" style="margin-top:.8rem"></div>
+
+        <div class="card" style="margin-top:1.2rem">
+          <p style="margin:0 0 .5rem"><strong>パネルのファイルを保存</strong>
+            <span class="muted">— <code>/自販機 設置</code> に渡します</span></p>
+          <p style="margin:0">
+            <button class="btn" id="dlp">保存</button>
+            <button class="btn ghost" id="copyp">文字をコピー</button>
+            <button class="btn ghost" id="showp">中身を見る</button>
+            <span class="muted" id="sizep" style="margin-left:.6rem"></span>
+          </p>
+          <div id="sizewarnp" style="margin-top:.7rem"></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="save" class="hide">
-    <h2><span class="num">4</span>ファイルを保存する</h2>
-    <p><strong>商品とパネルは別のファイル</strong>です。取り違えても Bot が種別を見て断ります。</p>
-
-    <div class="card">
-      <p style="margin:0 0 .5rem"><strong>商品のファイル</strong>
-        <span class="muted">— <code>/設定 取り込み</code> に渡します</span></p>
-      <p class="muted" style="margin:0 0 .7rem">商品の更新・追加・削除。<strong>取り込む前に差分が表示されます。</strong></p>
-      <p style="margin:0">
-        <button class="btn" id="dl">保存</button>
-        <button class="btn ghost" id="copy">文字をコピー</button>
-        <button class="btn ghost" id="show">中身を見る</button>
-        <span class="muted" id="size" style="margin-left:.6rem"></span>
-      </p>
-    </div>
-
-    <div class="card">
-      <p style="margin:0 0 .5rem"><strong>パネルのファイル</strong>
-        <span class="muted">— <code>/自販機 設置</code> に渡します</span></p>
-      <p class="muted" style="margin:0 0 .7rem">
-        パネル1枚。設置したときの内容で確定し、あとから編集はできません（変えたい場合は設置し直してください）。
-        <strong>画像は設置のときに一緒に添付します。</strong></p>
-      <p style="margin:0">
-        <button class="btn" id="dlp">保存</button>
-        <button class="btn ghost" id="copyp">文字をコピー</button>
-        <button class="btn ghost" id="showp">中身を見る</button>
-        <span class="muted" id="sizep" style="margin-left:.6rem"></span>
-      </p>
-    </div>
-    <div id="sizewarnp"></div>
-    <div id="sizewarn"></div>
-    <p class="muted">
-      スマートフォンではファイルの保存が扱いにくいことがあります。その場合は
-      <strong>「文字をコピー」</strong>して Discord に貼り付けてください。
-      ただし<strong>貼り付けには文字数の上限</strong>があります（下に表示）。
-    </p>
-    <div class="out hide" id="json"></div>
-  </section>
+  <div class="out hide" id="json"></div>
 
   <footer>
     このページは読み込んだ内容を送信しません。すべてブラウザの中で処理しています。<br>
@@ -343,10 +345,25 @@
     st.adds = []; st.dels = []; nextNew = -1;
     st.panel.products = [];
     $("loaded").textContent = st.guild.name + "（商品 " + (st.guild.products || []).length + " 件）";
-    ["products", "panel", "save"].forEach(function (id) { $(id).classList.remove("hide"); });
+    $("tabs").classList.remove("hide");
+    showPane("pane-p");
     drawList(); drawPicker(); drawEdit(); sim();
     return true;
   }
+
+  /** 商品とパネルは別の作業。同時には出さない */
+  function showPane(id) {
+    ["pane-p", "pane-l"].forEach(function (x) {
+      $(x).classList.toggle("hide", x !== id);
+    });
+    document.querySelectorAll(".tab").forEach(function (t) {
+      t.classList.toggle("on", t.dataset.pane === id);
+    });
+    $("json").classList.add("hide");
+  }
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.addEventListener("click", function () { showPane(t.dataset.pane); });
+  });
 
   function readFile(f) {
     var r = new FileReader();
