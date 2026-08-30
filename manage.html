@@ -124,6 +124,11 @@
            margin:.3rem 0;overflow-x:auto;font-size:85%;font-family:var(--f-mono);white-space:pre-wrap}
   .sim a{color:var(--dc-link);text-decoration:none}
 
+  .colorrow{display:flex;gap:.5rem;align-items:center}
+  .colorrow input[type=color]{width:3rem;height:2.2rem;padding:2px;border:1px solid var(--hair-firm);
+    border-radius:4px;background:var(--ground);cursor:pointer;flex:none}
+  .colorrow input[type=text]{font-family:var(--f-mono);text-transform:uppercase}
+  .imgrow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:.4rem}
   .picker{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
   .chip{border:1px solid var(--hair-firm);background:var(--panel);border-radius:99px;
         padding:.25rem .8rem;font-size:.82rem;cursor:pointer}
@@ -195,10 +200,23 @@
           <textarea id="pdesc" placeholder="下のボタンから商品を選んで購入できます。"></textarea>
 
           <label for="pcolor">左端の色</label>
-          <input type="text" id="pcolor" value="#5865F2" placeholder="#5865F2">
+          <div class="colorrow">
+            <input type="color" id="pcolor" value="#5865F2">
+            <input type="text" id="pcolorhex" value="#5865F2" spellcheck="false">
+          </div>
 
-          <label for="pimage">画像のURL（任意・空なら画像なし）</label>
-          <input type="text" id="pimage" placeholder="https://...">
+          <label>画像（任意）</label>
+          <div class="imgrow">
+            <button class="btn ghost" type="button" id="pimgpick">画像を選ぶ</button>
+            <button class="btn ghost hide" type="button" id="pimgclear">外す</button>
+            <span class="muted" id="pimgname">なし</span>
+            <input type="file" id="pimgfile" accept="image/*" class="hide">
+          </div>
+          <p class="muted" style="margin:.5rem 0 0;font-size:.82rem">
+            ここで選んだ画像は<strong>見え方の確認だけ</strong>に使います。設定ファイルには
+            <strong>「画像が要る」ことと元のファイル名</strong>しか入りません。
+            実際の画像は取り込みのあと、Bot が公開前に提示を求めます。
+          </p>
 
           <label for="pkey">パネルの名前（取り込み時の目印）</label>
           <input type="text" id="pkey" value="main">
@@ -233,7 +251,9 @@
 (function () {
   "use strict";
   var st = { data: null, guild: null, sel: null, edits: {}, panel: {
-    key: "main", title: "", desc: "", color: "#5865F2", image: "", products: []
+    key: "main", title: "", desc: "", color: "#5865F2",
+    // ★ 画像の中身は設定ファイルに入れない。確認用に持つだけで、書き出すのは名前と要否のみ
+    imageName: "", imageUrl: "", products: []
   } };
   var $ = function (id) { return document.getElementById(id); };
 
@@ -422,12 +442,45 @@
     $("pcount").textContent = st.panel.products.length + " 件選択";
   }
 
-  ["ptitle", "pdesc", "pcolor", "pimage", "pkey"].forEach(function (id) {
+  ["ptitle", "pdesc", "pkey"].forEach(function (id) {
     $(id).addEventListener("input", function (e) {
-      var k = { ptitle: "title", pdesc: "desc", pcolor: "color", pimage: "image", pkey: "key" }[id];
-      st.panel[k] = e.target.value;
+      st.panel[{ ptitle: "title", pdesc: "desc", pkey: "key" }[id]] = e.target.value;
       sim();
     });
+  });
+
+  // 色: ピッカーと16進の入力を両方向で合わせる
+  function setColor(v, from) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+    st.panel.color = v.toUpperCase();
+    if (from !== "picker") $("pcolor").value = st.panel.color;
+    if (from !== "hex") $("pcolorhex").value = st.panel.color;
+    sim();
+  }
+  $("pcolor").addEventListener("input", function (e) { setColor(e.target.value, "picker"); });
+  $("pcolorhex").addEventListener("input", function (e) { setColor(e.target.value.trim(), "hex"); });
+
+  // 画像: 確認用に読むだけ。**設定ファイルには入れない**
+  $("pimgpick").addEventListener("click", function () { $("pimgfile").click(); });
+  $("pimgfile").addEventListener("change", function (e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      st.panel.imageName = f.name;
+      st.panel.imageUrl = String(r.result);
+      $("pimgname").textContent = f.name;
+      $("pimgclear").classList.remove("hide");
+      sim();
+    };
+    r.readAsDataURL(f);
+  });
+  $("pimgclear").addEventListener("click", function () {
+    st.panel.imageName = ""; st.panel.imageUrl = "";
+    $("pimgname").textContent = "なし";
+    $("pimgfile").value = "";
+    $("pimgclear").classList.add("hide");
+    sim();
   });
 
   // ---- Discord の書式を再現する ----
@@ -469,7 +522,7 @@
         ? [single.description, "**" + Number(single.price).toLocaleString() + "円**"].filter(Boolean).join("\n\n")
         : "下のボタンから商品を選んで購入できます。");
 
-    var color = /^#[0-9a-fA-F]{6}$/.test(st.panel.color.trim()) ? st.panel.color.trim() : "#5865F2";
+    var color = /^#[0-9a-fA-F]{6}$/.test(st.panel.color) ? st.panel.color : "#5865F2";
 
     var btns = picked.length > 1
       ? picked.map(function (p) { return '<button class="dbtn">' + esc(cur(p).name) + "</button>"; }).join("")
@@ -484,8 +537,8 @@
           '<div class="embed" style="border-left-color:' + esc(color) + '">' +
             '<div class="etitle">' + md(title) + "</div>" +
             '<div class="edesc">' + md(desc) + "</div>" +
-            (st.panel.image.trim()
-              ? '<div class="ph">画像: ' + esc(st.panel.image.trim().slice(0, 60)) + "</div>"
+            (st.panel.imageUrl
+              ? '<img src="' + esc(st.panel.imageUrl) + '" alt="">'
               : "") +
           "</div>" +
           '<div class="btns">' + btns + "</div>" +
@@ -531,8 +584,9 @@
         key: st.panel.key.trim() || "main",
         title: st.panel.title.trim() || null,
         description: st.panel.desc.trim() || null,
-        color: st.panel.color.trim() || null,
-        image: st.panel.image.trim() || null,
+        color: st.panel.color || null,
+        // ★ 中身は入れない。取り込み後に Bot が公開前へ提示を求める
+        image: st.panel.imageName ? { required: true, filename: st.panel.imageName } : null,
         products: st.panel.products.slice()
       });
     }
