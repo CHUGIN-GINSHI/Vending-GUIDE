@@ -239,15 +239,35 @@
   </section>
 
   <section id="save" class="hide">
-    <h2><span class="num">4</span>設定ファイルを保存する</h2>
-    <p>保存した <code>.json</code> を Discord で <code>/運営 取り込み</code> に添付すると反映されます。
-      <strong>取り込む前に差分が表示されます。</strong></p>
-    <p>
-      <button class="btn" id="dl">設定ファイルを保存</button>
-      <button class="btn ghost" id="copy">文字をコピー</button>
-      <button class="btn ghost" id="show">中身を見る</button>
-      <span class="muted" id="size" style="margin-left:.6rem"></span>
-    </p>
+    <h2><span class="num">4</span>ファイルを保存する</h2>
+    <p><strong>商品とパネルは別のファイル</strong>です。取り違えても Bot が種別を見て断ります。</p>
+
+    <div class="card">
+      <p style="margin:0 0 .5rem"><strong>商品のファイル</strong>
+        <span class="muted">— <code>/設定 取り込み</code> に渡します</span></p>
+      <p class="muted" style="margin:0 0 .7rem">商品の更新・追加・削除。<strong>取り込む前に差分が表示されます。</strong></p>
+      <p style="margin:0">
+        <button class="btn" id="dl">保存</button>
+        <button class="btn ghost" id="copy">文字をコピー</button>
+        <button class="btn ghost" id="show">中身を見る</button>
+        <span class="muted" id="size" style="margin-left:.6rem"></span>
+      </p>
+    </div>
+
+    <div class="card">
+      <p style="margin:0 0 .5rem"><strong>パネルのファイル</strong>
+        <span class="muted">— <code>/自販機 設置</code> に渡します</span></p>
+      <p class="muted" style="margin:0 0 .7rem">
+        パネル1枚。設置したときの内容で確定し、あとから編集はできません（変えたい場合は設置し直してください）。
+        <strong>画像は設置のときに一緒に添付します。</strong></p>
+      <p style="margin:0">
+        <button class="btn" id="dlp">保存</button>
+        <button class="btn ghost" id="copyp">文字をコピー</button>
+        <button class="btn ghost" id="showp">中身を見る</button>
+        <span class="muted" id="sizep" style="margin-left:.6rem"></span>
+      </p>
+    </div>
+    <div id="sizewarnp"></div>
     <div id="sizewarn"></div>
     <p class="muted">
       スマートフォンではファイルの保存が扱いにくいことがあります。その場合は
@@ -780,35 +800,40 @@
         };
       }),
       // ★ 削除は明示的にだけ。書き出しに無いものを消す挙動は作らない
-      delete_products: st.dels.slice(),
-      panels: []
+      delete_products: st.dels.slice()
     };
-    if (st.panel.products.length) {
-      out.panels.push({
-        key: st.panel.key.trim() || "main",
-        title: st.panel.title.trim() || null,
-        description: st.panel.desc.trim() || null,
-        color: st.panel.color || null,
-        // ★ 中身は入れない。取り込み後に Bot が公開前へ提示を求める
-        image: st.panel.imageName ? { required: true, filename: st.panel.imageName } : null,
-        // 順序と見た目をまとめて持つ。products だけだと見た目が別管理になる
-        buttons: st.panel.products.length
-          ? st.panel.products.map(function (id) {
-              return { product: id, style: st.panel.styles[id] || "primary" };
-            })
-          : [{ browse: true, style: st.panel.browseStyle }]
-      });
-    }
     return out;
+  }
+
+  /**
+   * パネルのファイル。**商品とは別物**として出す（2026-08-30 の協議）。
+   * 取り違えて渡しても、Bot が kind を見て断れる。
+   */
+  function buildPanel() {
+    return {
+      version: 1, kind: "vending-panel", generated_at: new Date().toISOString(),
+      guild_id: st.guild.id,
+      key: st.panel.key.trim() || "main",
+      title: st.panel.title.trim() || null,
+      description: st.panel.desc.trim() || null,
+      color: st.panel.color || null,
+      // ★ 画像の中身は入れない。設置のときに添付してもらう
+      image: st.panel.imageName ? { required: true, filename: st.panel.imageName } : null,
+      // 順序と見た目をまとめて持つ。products だけだと見た目が別管理になる
+      buttons: st.panel.products.length
+        ? st.panel.products.map(function (id) {
+            return { product: id, style: st.panel.styles[id] || "primary" };
+          })
+        : [{ browse: true, style: st.panel.browseStyle }]
+    };
   }
 
   // 貼り付け先の上限。超えるならファイルで渡すしかない
   var PASTE = { modal: 4000, message: 2000 };
 
-  function refreshSize() {
-    var t = JSON.stringify(build());
+  function sizeOf(t, sizeId, warnId) {
     var n = t.length;
-    $("size").textContent = n.toLocaleString() + " 文字";
+    $(sizeId).textContent = n.toLocaleString() + " 文字";
     var w = "";
     if (n > PASTE.modal) {
       w = "<b>貼り付けでは渡せません</b>（" + n.toLocaleString() + " 文字。上限 " +
@@ -817,16 +842,19 @@
       w = "メッセージへの貼り付けには長すぎます（上限 " + PASTE.message.toLocaleString() +
           " 文字）。<strong>入力欄への貼り付け</strong>をお使いください。";
     }
-    $("sizewarn").innerHTML = w ? '<div class="warnbox">' + w + "</div>" : "";
+    $(warnId).innerHTML = w ? '<div class="warnbox">' + w + "</div>" : "";
     return t;
   }
+  function refreshSize() {
+    sizeOf(JSON.stringify(buildPanel()), "sizep", "sizewarnp");
+    return sizeOf(JSON.stringify(build()), "size", "sizewarn");
+  }
 
-  $("copy").addEventListener("click", function () {
-    var t = refreshSize();
+  function copyText(t, btn) {
     var done = function (msg) {
-      var b = $("copy"), old = b.textContent;
-      b.textContent = msg;
-      setTimeout(function () { b.textContent = old; }, 1800);
+      var old = btn.textContent;
+      btn.textContent = msg;
+      setTimeout(function () { btn.textContent = old; }, 1800);
     };
     // ★ 失敗したら黙らず、選択状態にして手でコピーできるようにする
     var fallback = function () {
@@ -839,7 +867,9 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(t).then(function () { done("コピーしました"); }, fallback);
     } else fallback();
-  });
+  }
+
+  $("copy").addEventListener("click", function () { copyText(refreshSize(), $("copy")); });
 
   $("show").addEventListener("click", function () {
     var el = $("json");
@@ -847,19 +877,32 @@
     el.classList.toggle("hide");
   });
 
-  $("dl").addEventListener("click", function () {
-    var data = build();
-    if (!data.products.length && !data.new_products.length &&
-        !data.delete_products.length && !data.panels.length) {
-      alert("変更がありません。商品を編集・追加・削除するか、パネルに商品を選んでください。");
-      return;
-    }
+  function download(data, prefix) {
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "vending-" + st.guild.id + "-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.download = prefix + "-" + st.guild.id + "-" + new Date().toISOString().slice(0, 10) + ".json";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  $("dl").addEventListener("click", function () {
+    var data = build();
+    if (!data.products.length && !data.new_products.length && !data.delete_products.length) {
+      alert("商品の変更がありません。");
+      return;
+    }
+    download(data, "products");
+  });
+
+  $("dlp").addEventListener("click", function () { download(buildPanel(), "panel"); });
+  $("showp").addEventListener("click", function () {
+    var el = $("json");
+    el.textContent = JSON.stringify(buildPanel(), null, 2);
+    el.classList.remove("hide");
+  });
+  $("copyp").addEventListener("click", function () {
+    copyText(JSON.stringify(buildPanel()), $("copyp"));
   });
 })();
 </script>
