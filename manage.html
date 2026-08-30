@@ -184,7 +184,8 @@
       <p style="margin:0 0 .4rem"><strong>書き出しを使わずに、新しい商品だけ作る</strong></p>
       <p class="muted" style="margin:0 0 .7rem">
         まだ商品が無いサーバーなど、書き出すものが無いときはこちら。
-        <strong>作った商品だけでパネルも作れます</strong>（既存の商品は扱えません）。
+        <strong>作った商品だけでパネルも作れます</strong>（既存の商品は扱えません）。<br>
+        サーバーIDは要りません。<strong>コマンドを実行したサーバーに作られます。</strong>
       </p>
       <p style="margin:0">
         <button class="btn ghost" id="fresh">新規作成をはじめる</button>
@@ -364,7 +365,8 @@
     st.adds = []; st.dels = []; nextNew = -1; st.fresh = false;
     $("freshnote").classList.add("hide");
     st.panel.products = [];
-    $("loaded").textContent = st.guild.name + "（商品 " + (st.guild.products || []).length + " 件）";
+    $("loaded").textContent = (st.guild.name || st.guild.id) +
+      "（商品 " + (st.guild.products || []).length + " 件）";
     $("tabs").classList.remove("hide");
     showPane("pane-p");
     drawList(); drawPicker(); drawEdit(); sim();
@@ -421,18 +423,15 @@
    *   パネルもその中からしか組めない（既存商品の ID が分からないため）。
    */
   $("fresh").addEventListener("click", function () {
-    var gid = (prompt("サーバーIDを入力してください（Discord で右クリック →「サーバーIDをコピー」）") || "").trim();
-    if (!/^\d{5,25}$/.test(gid)) {
-      if (gid) alert("サーバーIDは数字です。");
-      return;
-    }
+    // ★ サーバーIDは要らない。作成だけのファイルは、実行したサーバーに作ればよい。
+    //   照合が要るのは**更新と削除**（別サーバーのものを書き換えると戻せない）。
     load({
       version: 1, kind: "vending-export", exported_at: new Date().toISOString(), scope: "fresh",
-      guilds: [{ id: gid, name: "（新規作成）", settings: {}, products: [], panels: [],
+      guilds: [{ id: null, name: "（新規作成）", settings: {}, products: [], panels: [],
                  roles: [], channels: [], stats: null }]
     });
     st.fresh = true;
-    $("loaded").textContent = "新規作成（サーバー " + gid + "）";
+    $("loaded").textContent = "新規作成";
     $("freshnote").classList.remove("hide");
     // すぐ1件目を作れる状態にする
     $("padd").click();
@@ -851,7 +850,8 @@
     }).filter(Boolean);
     var out = {
       version: 1, kind: "vending-import", generated_at: new Date().toISOString(),
-      guild_id: st.guild.id,
+      // ★ 新規作成では入れない。実行したサーバーに作る
+      guild_id: st.guild.id || undefined,
       products: products,
       // 新しく作るもの。id を持たない＝作成、と Bot 側が判別する
       new_products: st.adds.map(function (p) {
@@ -894,7 +894,7 @@
   function buildPanel() {
     return {
       version: 1, kind: "vending-panel", generated_at: new Date().toISOString(),
-      guild_id: st.guild.id,
+      guild_id: st.guild.id || undefined,
       key: st.panel.key.trim() || "main",
       title: st.panel.title.trim() || null,
       description: st.panel.desc.trim() || null,
@@ -963,7 +963,8 @@
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = prefix + "-" + st.guild.id + "-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.download = prefix + (st.guild.id ? "-" + st.guild.id : "") +
+      "-" + new Date().toISOString().slice(0, 10) + ".json";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
