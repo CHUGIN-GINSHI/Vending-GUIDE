@@ -63,6 +63,19 @@
        padding:.5rem 1.1rem;font-weight:700;cursor:pointer;font-size:.9rem}
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--hair-firm)}
+  .btn.green{background:var(--ok);color:var(--ground)}
+  .parts{margin-top:.8rem;border-top:var(--rule);padding-top:.7rem}
+  .part{border:1px solid var(--hair-firm);border-radius:4px;padding:.6rem .7rem;margin-bottom:.5rem;
+        background:var(--ground)}
+  .part .h{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+  .part .h strong{flex:1;font-size:.9rem}
+  .part .rm{background:transparent;border:1px solid var(--hair-firm);border-radius:3px;
+            color:var(--muted);font-size:.75rem;padding:.1rem .5rem;cursor:pointer}
+  .radio{display:flex;gap:1rem;margin:.3rem 0}
+  .radio label{display:flex;align-items:center;gap:.35rem;margin:0;font-weight:400;
+               font-size:.86rem;color:var(--ink);cursor:pointer}
+  .radio input{width:auto}
+  .later{font-size:.8rem;color:var(--muted);margin:.3rem 0 0}
 
   label{display:block;font-size:.78rem;font-weight:700;color:var(--muted);
         letter-spacing:.04em;margin:.9rem 0 .3rem}
@@ -203,7 +216,10 @@
   <section id="pane-p" class="pane hide">
     <h2>商品を編集する</h2>
     <p class="muted">行を選ぶと編集できます。既存商品の<strong>種別は変えられません</strong>（変えると在庫や払い出しの前提が崩れます）。</p>
-    <p><button class="btn" id="padd">商品を追加</button></p>
+    <p>
+      <button class="btn" id="padd">商品を追加</button>
+      <button class="btn green" id="pset">セットを作成</button>
+    </p>
     <div class="grid two">
       <div>
         <div class="scroller">
@@ -343,7 +359,7 @@
     }]
   };
 
-  var DRIVER = { code: "コード", role: "ロール", file: "ファイル", ticket: "手動チケット", bundle: "セット" };
+  var DRIVER = { code: "コード", role: "ロール", file: "ファイル", ticket: "手動チケット", set: "セット" };
   // ★ Discord のボタンは**任意の色を指定できない**。この4種類だけ
   var STYLES = [
     ["primary", "青（既定）"], ["secondary", "灰"], ["success", "緑"], ["danger", "赤"]
@@ -441,22 +457,32 @@
   // ---- 商品の追加 ----
   // ★ 種別ごとに要るものが違う。ロール/チャンネルは書き出しに入っている一覧から選ばせる。
   //   ファイルの実体は JSON に入れられないので、公開前に Bot が求める。
+  // ★ 実体は Bot が後から求める（2026-08-31）。ここでは**何を何個渡すか**だけ決める。
+  //   ロールやチャンネルを JSON で選ばせると、消えたり並びが変わったりでずれる。
+  //   Discord のものは Discord で選ぶのが確実。
   var NEEDS = {
-    code: { stock: "items", note: "取り込んだあと Discord で `/在庫 追加` からコードを入れてください。" },
-    file: { stock: "unlimited", note: "配布URLを入力するか、公開前に Bot がファイルの提示を求めます。" },
-    role: { stock: "unlimited", note: "配るロールを選んでください。" },
-    ticket: { stock: "unlimited", note: "うまく作れなかったときの受付先チャンネルを選んでください。" }
+    code:   { stock: "items",     later: "取り込んだあと `/在庫 追加` でコードを入れてください。" },
+    file:   { stock: "unlimited", later: "「Botに渡す」を選んだ分は、公開前に Bot がファイルを求めます。" },
+    role:   { stock: "unlimited", later: "どのロールを配るかは、取り込んだあと Bot が尋ねます。" },
+    ticket: { stock: "unlimited", later: "受付先チャンネルは、取り込んだあと Bot が尋ねます。" }
   };
 
-  $("padd").addEventListener("click", function () {
+  function addProduct(driver, parts) {
     var id = nextNew--;
     st.adds.push({
-      id: id, name: "新しい商品", description: "", category: null, price: 0,
-      per_user_limit: null, status: "draft", driver: "code",
-      stock_mode: NEEDS.code.stock, available: 0, driver_config: {}, updated_at: null
+      id: id, name: driver === "set" ? "新しいセット" : "新しい商品",
+      description: "", category: null, price: 0,
+      per_user_limit: null, status: "draft", driver: driver,
+      stock_mode: driver === "code" ? "items" : "unlimited",
+      available: 0, driver_config: parts ? { parts: parts } : {}, updated_at: null
     });
     st.sel = id;
     drawList(); drawEdit(); drawPicker();
+  }
+  $("padd").addEventListener("click", function () { addProduct("code", null); });
+  // ★ セットは「種別の組み合わせ」。商品の集合ではない
+  $("pset").addEventListener("click", function () {
+    addProduct("set", [{ type: "role", count: 1 }]);
   });
 
   // ---- 商品 ----
@@ -493,7 +519,11 @@
           '<br><span class="muted">' + (p.id < 0 ? "新しい商品" : "#" + p.id) + "</span></td>" +
         "<td>" + Number(c.price).toLocaleString() + "円</td>" +
         "<td>" + esc(DRIVER[p.driver] || p.driver) +
-          (p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
+          (p.driver === "set" && p.driver_config && p.driver_config.parts
+            ? '<br><span class="muted">' +
+              p.driver_config.parts.map(function (x) { return DRIVER[x.type] || x.type; }).join("＋") +
+              "</span>"
+            : p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
         '<td><span class="tag ' + (p.id < 0 ? "off" : c.status === "active" ? "on" : "off") + '">' +
           (p.id < 0 ? "非公開" : c.status === "active" ? "公開" : "非公開") + "</span></td>";
       tr.addEventListener("click", function () { st.sel = p.id; drawList(); drawEdit(); });
@@ -516,7 +546,11 @@
       "<p style='margin:0 0 .2rem'><strong>" + (isNew ? "新しい商品" : "#" + p.id) + "</strong> " +
         '<span class="tag">' + esc(DRIVER[p.driver] || p.driver) + "</span></p>" +
       '<p class="muted" style="margin:0 0 .6rem">' +
-        (isNew ? "取り込むと作成されます" : "種別・在庫方式は変えられません") + "</p>" +
+        (isNew
+          ? p.driver === "set"
+            ? "複数の種別を組み合わせて1つの商品にします。取り込むと作成されます"
+            : "取り込むと作成されます"
+          : "種別・在庫方式は変えられません") + "</p>" +
       (isDel ? '<div class="warnbox"><b>削除の予定です</b><br>取り込むとこの商品は消えます。' +
                "注文の記録がある商品は削除できず、非公開になります。</div>" : "") +
       '<label for="e_name">商品名<span class="count" id="c_name"></span></label>' +
@@ -590,68 +624,118 @@
     });
     if (isNew) {
       var self = st.adds.filter(function (x) { return x.id === p.id; })[0];
+      var parts = self.driver_config.parts || [];
       var d = $("e_driver");
       if (d) d.addEventListener("change", function (e) {
         self.driver = e.target.value;
         self.stock_mode = NEEDS[self.driver].stock;
-        self.driver_config = {};   // 種別が変われば固有設定は作り直し
+        // 種別を変えたら渡すものも作り直す
+        self.driver_config = { parts: [{ type: self.driver, count: 1 }] };
         drawList(); drawEdit();
       });
-      var r = $("e_role");
-      if (r) {
-        self.driver_config.role_id = self.driver_config.role_id || r.value;
-        r.addEventListener("change", function (e) { self.driver_config.role_id = e.target.value; });
-      }
-      var ch = $("e_chan");
-      if (ch) {
-        self.driver_config.channel_id = self.driver_config.channel_id || ch.value;
-        ch.addEventListener("change", function (e) { self.driver_config.channel_id = e.target.value; });
-      }
-      var u = $("e_url");
-      if (u) u.addEventListener("input", function (e) {
-        var v = e.target.value.trim();
-        if (v) { self.driver_config.method = "external"; self.driver_config.url = v; }
-        else { delete self.driver_config.url; self.driver_config.method = "attach"; }
+
+      // 渡すものの操作
+      box.querySelectorAll("[data-add]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          parts.push({ type: b.dataset.add, count: 1 });
+          drawEdit();
+        });
+      });
+      box.querySelectorAll("[data-rm]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          parts.splice(Number(b.dataset.rm), 1);
+          if (!parts.length) parts.push({ type: "role", count: 1 });
+          drawEdit();
+        });
+      });
+      box.querySelectorAll("[data-fm]").forEach(function (r2) {
+        r2.addEventListener("change", function (e) {
+          var pt = parts[Number(e.target.dataset.fm)];
+          pt.mode = e.target.value;
+          if (pt.mode === "bot") delete pt.url;
+          drawEdit();
+        });
+      });
+      box.querySelectorAll("[data-url]").forEach(function (u) {
+        u.addEventListener("input", function (e) {
+          parts[Number(e.target.dataset.url)].url = e.target.value.trim();
+        });
+      });
+      box.querySelectorAll("[data-count]").forEach(function (c2) {
+        c2.addEventListener("input", function (e) {
+          parts[Number(e.target.dataset.count)].count = Math.max(1, Number(e.target.value || 1));
+        });
       });
     }
     count("c_name", c.name.length, LIMIT.label);
     count("c_desc", (c.description || "").length, LIMIT.desc);
   }
 
-  /** 新規商品だけに出す欄。種別と、種別ごとに要るもの */
+  /**
+   * 新規商品だけに出す欄。
+   *
+   * ★ ロールやチャンネルの**選択欄は出さない**（2026-08-31）。
+   *   何を何個渡すかだけ決め、実体は Bot が後から尋ねる。
+   */
   function newExtra(p) {
-    var roles = (st.guild.roles || []).filter(function (r) { return r.assignable !== false; });
-    var chans = st.guild.channels || [];
+    if (p.driver === "set") return partsUI(p);
     var h =
       '<label for="e_driver">種別</label><select id="e_driver">' +
         Object.keys(NEEDS).map(function (d) {
           return '<option value="' + d + '"' + (p.driver === d ? " selected" : "") + ">" +
                  esc(DRIVER[d]) + "</option>";
         }).join("") + "</select>";
-    if (p.driver === "role") {
-      h += '<label for="e_role">配るロール</label><select id="e_role">' +
-        (roles.length
-          ? roles.map(function (r) {
-              return '<option value="' + r.id + '"' +
-                (p.driver_config.role_id === r.id ? " selected" : "") + ">" + esc(r.name) + "</option>";
-            }).join("")
-          : '<option value="">（選べるロールがありません）</option>') + "</select>";
-    }
-    if (p.driver === "ticket") {
-      h += '<label for="e_chan">受付先チャンネル</label><select id="e_chan">' +
-        (chans.length
-          ? chans.map(function (c) {
-              return '<option value="' + c.id + '"' +
-                (p.driver_config.channel_id === c.id ? " selected" : "") + ">#" + esc(c.name) + "</option>";
-            }).join("")
-          : '<option value="">（チャンネルがありません）</option>') + "</select>";
-    }
-    if (p.driver === "file") {
-      h += '<label for="e_url">配布URL（空なら公開前にファイルを求めます）</label>' +
-           '<input type="text" id="e_url" value="' + esc(p.driver_config.url || "") + '">';
-    }
-    return h + '<p class="muted" style="margin:.5rem 0 0;font-size:.82rem">' +
-           esc(NEEDS[p.driver].note) + "</p>";
+    // 単体の商品も parts と同じ形で持たせる（セットとの差を無くす）
+    h += partsUI(p, true);
+    return h;
+  }
+
+  /** 渡すものの一覧。セットは複数、単体は1つ */
+  function partsUI(p, single) {
+    var parts = p.driver_config.parts || (p.driver_config.parts = [
+      { type: p.driver === "set" ? "role" : p.driver, count: 1 }
+    ]);
+    var rows = parts.map(function (pt, k) {
+      var head = '<div class="h"><strong>' + esc(DRIVER[pt.type] || pt.type) + "</strong>" +
+        (single || parts.length <= 1 ? "" : '<button class="rm" data-rm="' + k + '">外す</button>') +
+        "</div>";
+      var body = "";
+      if (pt.type === "file") {
+        var mode = pt.mode === "url" ? "url" : "bot";
+        body =
+          '<div class="radio">' +
+            '<label><input type="radio" name="fm' + k + '" data-fm="' + k + '" value="url"' +
+              (mode === "url" ? " checked" : "") + ">URLを渡す</label>" +
+            '<label><input type="radio" name="fm' + k + '" data-fm="' + k + '" value="bot"' +
+              (mode === "bot" ? " checked" : "") + ">Botに渡す（ファイル）</label>" +
+          "</div>" +
+          (mode === "url"
+            ? '<input type="text" data-url="' + k + '" placeholder="https://..." value="' +
+              esc(pt.url || "") + '">'
+            : '<p class="later">取り込んだあと、Bot がファイルの提示を求めます。</p>');
+      } else if (pt.type === "role") {
+        body = '<label style="margin-top:.2rem">配るロールの数</label>' +
+               '<input type="number" min="1" max="10" data-count="' + k + '" value="' +
+               (pt.count || 1) + '">' +
+               '<p class="later">どのロールかは、取り込んだあと Bot が尋ねます。</p>';
+      } else if (pt.type === "code") {
+        body = '<p class="later">取り込んだあと `/在庫 追加` でコードを入れてください。</p>';
+      } else if (pt.type === "ticket") {
+        body = '<p class="later">受付先チャンネルは、取り込んだあと Bot が尋ねます。</p>';
+      }
+      return '<div class="part">' + head + body + "</div>";
+    }).join("");
+
+    var add = single ? "" :
+      '<p style="margin:.2rem 0 0">' +
+        Object.keys(NEEDS).map(function (d) {
+          return '<button class="btn ghost" data-add="' + d + '" style="font-size:.8rem;padding:.3rem .7rem">' +
+                 "＋" + esc(DRIVER[d]) + "</button>";
+        }).join(" ") + "</p>";
+
+    return '<div class="parts"><label style="margin-top:0">渡すもの' +
+           (single ? "" : '<span class="count" style="font-weight:400">組み合わせられます</span>') +
+           "</label>" + rows + add + "</div>";
   }
 
   function count(id, n, max) {
