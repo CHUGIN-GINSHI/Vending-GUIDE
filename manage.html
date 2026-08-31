@@ -215,10 +215,9 @@
   <!-- ============ 商品 ============ -->
   <section id="pane-p" class="pane hide">
     <h2>商品を編集する</h2>
-    <p class="muted">行を選ぶと編集できます。既存商品の<strong>種別は変えられません</strong>（変えると在庫や払い出しの前提が崩れます）。</p>
+    <p class="muted">行を選ぶと編集できます。商品には<strong>渡すもの（中身）</strong>をいくつでも入れられます。既存商品の<strong>中身の構成は変えられません</strong>（変えると在庫や払い出しの前提が崩れます）。</p>
     <p>
-      <button class="btn" id="padd">商品を追加</button>
-      <button class="btn green" id="pset">セットを作成</button>
+      <button class="btn green" id="padd">商品を追加</button>
     </p>
     <div class="grid two">
       <div>
@@ -359,7 +358,35 @@
     }]
   };
 
-  var DRIVER = { code: "コード", role: "ロール", file: "ファイル", ticket: "手動チケット", set: "セット" };
+  // ★★ 「セット」は種別ではない（2026-09-01）。種別は**中身**の属性へ一段下がった。
+  //   商品はどれも「中身を持つ商品」で、セットという別種の商品は存在しない。
+  //   driver='set' は複数の中身を持つことの内部表現でしかなく、画面には出さない。
+  //   Bot 側の core/src/drivers/labels.ts（PART_LABELS）と同じ言葉に揃えてある。
+  var DRIVER = { code: "コード", role: "ロール", file: "ファイル", ticket: "手動チケット" };
+
+  /** その商品が何を渡すか。単体も複数も同じ言葉で並べる */
+  function contentLabels(p) {
+    var parts = (p.driver_config && p.driver_config.parts) || null;
+    if (!parts || !parts.length) return [DRIVER[p.driver] || p.driver];
+    return parts.map(function (x) { return DRIVER[x.type] || x.type; });
+  }
+
+  /**
+   * 中身から driver と stock_mode を決める。
+   *
+   * ★★ Bot 側の partsToDriver（core/src/config/import.ts）と**同じ規則**にすること。
+   *   中身1つ → その種類 / 2つ以上 → set。ロールは count の数だけ展開される。
+   *   ずれると書き出しと取り込みで結果が変わる。
+   */
+  function syncDriver(p) {
+    var parts = (p.driver_config && p.driver_config.parts) || [];
+    var n = 0;
+    parts.forEach(function (x) {
+      n += x.type === "role" ? Math.min(10, Math.max(1, Number(x.count || 1))) : 1;
+    });
+    p.driver = n > 1 ? "set" : (parts[0] ? parts[0].type : "code");
+    p.stock_mode = parts.some(function (x) { return x.type === "code"; }) ? "items" : "unlimited";
+  }
   // ★ Discord のボタンは**任意の色を指定できない**。この4種類だけ
   var STYLES = [
     ["primary", "青（既定）"], ["secondary", "灰"], ["success", "緑"], ["danger", "赤"]
@@ -467,23 +494,27 @@
     ticket: { stock: "unlimited", later: "受付先チャンネルは、取り込んだあと Bot が尋ねます。" }
   };
 
-  function addProduct(driver, parts) {
+  /**
+   * 商品を1つ作る。**入口は1つだけ**（2026-09-01）。
+   *
+   * ★★ 以前は「商品を追加」と「セットを作成」の2つがあり、違いは初期の中身だけだった。
+   *   利用者から見れば同じものなので、入口を分ける理由が無い。
+   *   中身は作ったあとで足せる（＋ボタン）。
+   */
+  function addProduct() {
     var id = nextNew--;
-    st.adds.push({
-      id: id, name: driver === "set" ? "新しいセット" : "新しい商品",
+    var p = {
+      id: id, name: "新しい商品",
       description: "", category: null, price: 0,
-      per_user_limit: null, status: "draft", driver: driver,
-      stock_mode: driver === "code" ? "items" : "unlimited",
-      available: 0, driver_config: parts ? { parts: parts } : {}, updated_at: null
-    });
+      per_user_limit: null, status: "draft",
+      available: 0, driver_config: { parts: [{ type: "code", count: 1 }] }, updated_at: null
+    };
+    syncDriver(p);
+    st.adds.push(p);
     st.sel = id;
     drawList(); drawEdit(); drawPicker();
   }
-  $("padd").addEventListener("click", function () { addProduct("code", null); });
-  // ★ セットは「種別の組み合わせ」。商品の集合ではない
-  $("pset").addEventListener("click", function () {
-    addProduct("set", [{ type: "role", count: 1 }]);
-  });
+  $("padd").addEventListener("click", function () { addProduct(); });
 
   // ---- 商品 ----
   function cur(p) {
@@ -518,12 +549,8 @@
                : edited(p.id) ? ' <span class="tag edited">編集</span>' : "") +
           '<br><span class="muted">' + (p.id < 0 ? "新しい商品" : "#" + p.id) + "</span></td>" +
         "<td>" + Number(c.price).toLocaleString() + "円</td>" +
-        "<td>" + esc(DRIVER[p.driver] || p.driver) +
-          (p.driver === "set" && p.driver_config && p.driver_config.parts
-            ? '<br><span class="muted">' +
-              p.driver_config.parts.map(function (x) { return DRIVER[x.type] || x.type; }).join("＋") +
-              "</span>"
-            : p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
+        "<td>" + esc(contentLabels(p).join("・")) +
+          (p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
         '<td><span class="tag ' + (p.id < 0 ? "off" : c.status === "active" ? "on" : "off") + '">' +
           (p.id < 0 ? "非公開" : c.status === "active" ? "公開" : "非公開") + "</span></td>";
       tr.addEventListener("click", function () { st.sel = p.id; drawList(); drawEdit(); });
@@ -544,13 +571,11 @@
     var isDel = st.dels.indexOf(p.id) >= 0;
     box.innerHTML =
       "<p style='margin:0 0 .2rem'><strong>" + (isNew ? "新しい商品" : "#" + p.id) + "</strong> " +
-        '<span class="tag">' + esc(DRIVER[p.driver] || p.driver) + "</span></p>" +
+        '<span class="tag">' + esc(contentLabels(p).join("・")) + "</span></p>" +
       '<p class="muted" style="margin:0 0 .6rem">' +
         (isNew
-          ? p.driver === "set"
-            ? "複数の種別を組み合わせて1つの商品にします。取り込むと作成されます"
-            : "取り込むと作成されます"
-          : "種別・在庫方式は変えられません") + "</p>" +
+          ? "渡すもの（中身）をいくつでも入れられます。取り込むと作成されます"
+          : "中身の構成・在庫方式は変えられません") + "</p>" +
       (isDel ? '<div class="warnbox"><b>削除の予定です</b><br>取り込むとこの商品は消えます。' +
                "注文の記録がある商品は削除できず、非公開になります。</div>" : "") +
       '<label for="e_name">商品名<span class="count" id="c_name"></span></label>' +
@@ -625,27 +650,21 @@
     if (isNew) {
       var self = st.adds.filter(function (x) { return x.id === p.id; })[0];
       var parts = self.driver_config.parts || [];
-      var d = $("e_driver");
-      if (d) d.addEventListener("change", function (e) {
-        self.driver = e.target.value;
-        self.stock_mode = NEEDS[self.driver].stock;
-        // 種別を変えたら渡すものも作り直す
-        self.driver_config = { parts: [{ type: self.driver, count: 1 }] };
-        drawList(); drawEdit();
-      });
+      // ★ 中身を変えたら driver と stock_mode を必ず引き直す。
+      //   書き出しにはこの2つも入るので、置いていかれると取り込みとずれる。
+      var touched = function () { syncDriver(self); drawList(); drawEdit(); };
 
-      // 渡すものの操作
       box.querySelectorAll("[data-add]").forEach(function (b) {
         b.addEventListener("click", function () {
           parts.push({ type: b.dataset.add, count: 1 });
-          drawEdit();
+          touched();
         });
       });
       box.querySelectorAll("[data-rm]").forEach(function (b) {
         b.addEventListener("click", function () {
           parts.splice(Number(b.dataset.rm), 1);
-          if (!parts.length) parts.push({ type: "role", count: 1 });
-          drawEdit();
+          if (!parts.length) parts.push({ type: "code", count: 1 });
+          touched();
         });
       });
       box.querySelectorAll("[data-fm]").forEach(function (r2) {
@@ -664,6 +683,8 @@
       box.querySelectorAll("[data-count]").forEach(function (c2) {
         c2.addEventListener("input", function (e) {
           parts[Number(e.target.dataset.count)].count = Math.max(1, Number(e.target.value || 1));
+          // ★ ロールの個数は展開されるので、2以上なら内部的に set になる
+          syncDriver(self); drawList();
         });
       });
     }
@@ -678,26 +699,21 @@
    *   何を何個渡すかだけ決め、実体は Bot が後から尋ねる。
    */
   function newExtra(p) {
-    if (p.driver === "set") return partsUI(p);
-    var h =
-      '<label for="e_driver">種別</label><select id="e_driver">' +
-        Object.keys(NEEDS).map(function (d) {
-          return '<option value="' + d + '"' + (p.driver === d ? " selected" : "") + ">" +
-                 esc(DRIVER[d]) + "</option>";
-        }).join("") + "</select>";
-    // 単体の商品も parts と同じ形で持たせる（セットとの差を無くす）
-    h += partsUI(p, true);
-    return h;
+    // ★★ 「種別」のセレクトは廃止した（2026-09-01）。
+    //   種別は商品ではなく**中身**の属性なので、＋ボタンで中身ごとに選ぶ。
+    //   単体の商品も「中身が1つの商品」として同じ画面で扱う。
+    return partsUI(p);
   }
 
-  /** 渡すものの一覧。セットは複数、単体は1つ */
-  function partsUI(p, single) {
+  /** 渡すものの一覧。1つでも複数でも同じ画面で扱う */
+  function partsUI(p) {
     var parts = p.driver_config.parts || (p.driver_config.parts = [
-      { type: p.driver === "set" ? "role" : p.driver, count: 1 }
+      { type: p.driver || "code", count: 1 }
     ]);
     var rows = parts.map(function (pt, k) {
+      // ★ 最後の1つは外せない。中身が空の商品は作れない
       var head = '<div class="h"><strong>' + esc(DRIVER[pt.type] || pt.type) + "</strong>" +
-        (single || parts.length <= 1 ? "" : '<button class="rm" data-rm="' + k + '">外す</button>') +
+        (parts.length <= 1 ? "" : '<button class="rm" data-rm="' + k + '">外す</button>') +
         "</div>";
       var body = "";
       if (pt.type === "file") {
@@ -726,7 +742,7 @@
       return '<div class="part">' + head + body + "</div>";
     }).join("");
 
-    var add = single ? "" :
+    var add =
       '<p style="margin:.2rem 0 0">' +
         Object.keys(NEEDS).map(function (d) {
           return '<button class="btn ghost" data-add="' + d + '" style="font-size:.8rem;padding:.3rem .7rem">' +
@@ -734,7 +750,7 @@
         }).join(" ") + "</p>";
 
     return '<div class="parts"><label style="margin-top:0">渡すもの' +
-           (single ? "" : '<span class="count" style="font-weight:400">組み合わせられます</span>') +
+           '<span class="count" style="font-weight:400">いくつでも入れられます</span>' +
            "</label>" + rows + add + "</div>";
   }
 
