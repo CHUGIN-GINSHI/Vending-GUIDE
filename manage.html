@@ -368,7 +368,10 @@
   function contentLabels(p) {
     var parts = (p.driver_config && p.driver_config.parts) || null;
     if (!parts || !parts.length) return [DRIVER[p.driver] || p.driver];
-    return parts.map(function (x) { return DRIVER[x.type] || x.type; });
+    // 名前が付いていればそちらで呼ぶ（Bot の設定画面と同じ見え方にする）
+    return parts.map(function (x) {
+      return (x.name && x.name.trim()) ? x.name.trim() : (DRIVER[x.type] || x.type);
+    });
   }
 
   /**
@@ -675,6 +678,14 @@
           drawEdit();
         });
       });
+      box.querySelectorAll("[data-name]").forEach(function (nm) {
+        nm.addEventListener("input", function (e) {
+          var v = e.target.value.trim();
+          if (v) parts[Number(e.target.dataset.name)].name = v;
+          else delete parts[Number(e.target.dataset.name)].name;
+          drawList();
+        });
+      });
       box.querySelectorAll("[data-url]").forEach(function (u) {
         u.addEventListener("input", function (e) {
           parts[Number(e.target.dataset.url)].url = e.target.value.trim();
@@ -715,7 +726,14 @@
       var head = '<div class="h"><strong>' + esc(DRIVER[pt.type] || pt.type) + "</strong>" +
         (parts.length <= 1 ? "" : '<button class="rm" data-rm="' + k + '">外す</button>') +
         "</div>";
-      var body = "";
+      // ★ 中身の名前（2026-09-01）。公開前に Bot で設定するとき、
+      //   「1つ目（ロール）」ではなく付けた名前で選べるようにするためのもの。
+      //   手動チケットでは、作られるチャンネルの名前にもなる。
+      var body =
+        '<label style="margin-top:.2rem">名前<span class="count" style="font-weight:400">任意</span></label>' +
+        '<input type="text" maxlength="32" data-name="' + k + '" placeholder="' +
+        esc(pt.type === "ticket" ? "例: 相談枠（チャンネル名になります）" : "例: 支援ロール") +
+        '" value="' + esc(pt.name || "") + '">';
       if (pt.type === "file") {
         var mode = pt.mode === "url" ? "url" : "bot";
         body =
@@ -742,9 +760,16 @@
       return '<div class="part">' + head + body + "</div>";
     }).join("");
 
+    // ★★ コードと手動チケットは1つまで（Bot 側の partsToDriver と同じ制限）。
+    //   コードは在庫がどちらのものか決まらない。
+    //   手動チケットは注文1件に受付が2つできてしまう（個別チャンネルなら2つ作られる）。
+    var ONCE = { code: 1, ticket: 1 };
     var add =
       '<p style="margin:.2rem 0 0">' +
-        Object.keys(NEEDS).map(function (d) {
+        Object.keys(NEEDS).filter(function (d) {
+          if (!ONCE[d]) return true;
+          return !parts.some(function (x) { return x.type === d; });
+        }).map(function (d) {
           return '<button class="btn ghost" data-add="' + d + '" style="font-size:.8rem;padding:.3rem .7rem">' +
                  "＋" + esc(DRIVER[d]) + "</button>";
         }).join(" ") + "</p>";
