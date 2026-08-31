@@ -167,12 +167,17 @@
          font-size:.85rem;color:var(--muted)}
   .hide{display:none}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  /* ★ 版の表記（2026-09-01）。「直したのに変わらない」が
+     反映待ちなのか不具合なのかを、画面だけで切り分けられるようにする。
+     内容を変えたら必ずここも上げること。 */
+  .ver { font-size: .62em; font-weight: 400; opacity: .55; letter-spacing: .04em;
+         vertical-align: middle; margin-left: .4rem; }
 </style>
 
 <div class="wrap">
   <header class="top">
     <p class="eyebrow">駐銀 自販機Bot</p>
-    <h1>自販機の編集台</h1>
+    <h1>自販機の編集台 <span class="ver">2026-09-01a</span></h1>
     <p class="lede">
       商品とパネルをここで編集し、設定ファイルを作ります。Discord での見え方はその場で確認できます。
       <strong>読み込んだ内容はこのブラウザから出ません。</strong>
@@ -317,7 +322,8 @@
 
   <footer>
     このページは読み込んだ内容を送信しません。すべてブラウザの中で処理しています。<br>
-    設定ファイルの形式は v1 です。Bot 側が対応していない版は取り込めません。
+    設定ファイルの形式は v1 です。Bot 側が対応していない版は取り込めません。<br>
+    編集台の版: <strong>2026-09-01a</strong>（画面が古いときは再読み込みしてください）
   </footer>
 </div>
 
