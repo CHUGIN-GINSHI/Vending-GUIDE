@@ -729,11 +729,15 @@
       // ★ 中身の名前（2026-09-01）。公開前に Bot で設定するとき、
       //   「1つ目（ロール）」ではなく付けた名前で選べるようにするためのもの。
       //   手動チケットでは、作られるチャンネルの名前にもなる。
-      var body =
+      //
+      // ★★ body とは**別の変数**にすること。下の分岐は body を `=` で置き換えるので、
+      //   ここに混ぜると種別ごとに消える（2026-09-01 に実際そうなった）。
+      var nameField =
         '<label style="margin-top:.2rem">名前<span class="count" style="font-weight:400">任意</span></label>' +
         '<input type="text" maxlength="32" data-name="' + k + '" placeholder="' +
         esc(pt.type === "ticket" ? "例: 相談枠（チャンネル名になります）" : "例: 支援ロール") +
         '" value="' + esc(pt.name || "") + '">';
+      var body = "";
       if (pt.type === "file") {
         var mode = pt.mode === "url" ? "url" : "bot";
         body =
@@ -757,7 +761,7 @@
       } else if (pt.type === "ticket") {
         body = '<p class="later">受付先チャンネルは、取り込んだあと Bot が尋ねます。</p>';
       }
-      return '<div class="part">' + head + body + "</div>";
+      return '<div class="part">' + head + nameField + body + "</div>";
     }).join("");
 
     // ★★ コードと手動チケットは1つまで（Bot 側の partsToDriver と同じ制限）。
