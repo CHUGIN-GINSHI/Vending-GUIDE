@@ -177,7 +177,7 @@
 <div class="wrap">
   <header class="top">
     <p class="eyebrow">駐銀 自販機Bot</p>
-    <h1>自販機の編集台 <span class="ver">2026-09-01a</span></h1>
+    <h1>自販機の編集台 <span class="ver">2026-09-01b</span></h1>
     <p class="lede">
       商品とパネルをここで編集し、設定ファイルを作ります。Discord での見え方はその場で確認できます。
       <strong>読み込んだ内容はこのブラウザから出ません。</strong>
@@ -323,7 +323,7 @@
   <footer>
     このページは読み込んだ内容を送信しません。すべてブラウザの中で処理しています。<br>
     設定ファイルの形式は v1 です。Bot 側が対応していない版は取り込めません。<br>
-    編集台の版: <strong>2026-09-01a</strong>（画面が古いときは再読み込みしてください）
+    編集台の版: <strong>2026-09-01b</strong>（画面が古いときは再読み込みしてください）
   </footer>
 </div>
 
@@ -372,8 +372,11 @@
 
   /** その商品が何を渡すか。単体も複数も同じ言葉で並べる */
   function contentLabels(p) {
-    var parts = (p.driver_config && p.driver_config.parts) || null;
-    if (!parts || !parts.length) return [DRIVER[p.driver] || p.driver];
+    // ★ 空配列と「parts が無い（既存の単体商品）」を区別する
+    var parts = (p.driver_config && Array.isArray(p.driver_config.parts))
+      ? p.driver_config.parts : null;
+    if (!parts) return [DRIVER[p.driver] || p.driver];
+    if (!parts.length) return [];
     // 名前が付いていればそちらで呼ぶ（Bot の設定画面と同じ見え方にする）
     return parts.map(function (x) {
       return (x.name && x.name.trim()) ? x.name.trim() : (DRIVER[x.type] || x.type);
@@ -393,7 +396,7 @@
     parts.forEach(function (x) {
       n += x.type === "role" ? Math.min(10, Math.max(1, Number(x.count || 1))) : 1;
     });
-    p.driver = n > 1 ? "set" : (parts[0] ? parts[0].type : "code");
+    p.driver = n > 1 ? "set" : (parts[0] ? parts[0].type : "");
     p.stock_mode = parts.some(function (x) { return x.type === "code"; }) ? "items" : "unlimited";
   }
   // ★ Discord のボタンは**任意の色を指定できない**。この4種類だけ
@@ -516,7 +519,10 @@
       id: id, name: "新しい商品",
       description: "", category: null, price: 0,
       per_user_limit: null, status: "draft",
-      available: 0, driver_config: { parts: [{ type: "code", count: 1 }] }, updated_at: null
+      // ★ 中身は空で作る（2026-09-01）。既定で1つ置くと、それが「コード」だったため
+      //   ＋コードのボタンが最初から消えて見えた（コードは1つまでなので）。
+      //   何を渡すかは出品者が選ぶ。こちらで勝手に決めない。
+      available: 0, driver_config: { parts: [] }, updated_at: null
     };
     syncDriver(p);
     st.adds.push(p);
@@ -558,7 +564,7 @@
                : edited(p.id) ? ' <span class="tag edited">編集</span>' : "") +
           '<br><span class="muted">' + (p.id < 0 ? "新しい商品" : "#" + p.id) + "</span></td>" +
         "<td>" + Number(c.price).toLocaleString() + "円</td>" +
-        "<td>" + esc(contentLabels(p).join("・")) +
+        "<td>" + esc(contentLabels(p).join("・") || "中身なし") +
           (p.available != null ? '<br><span class="muted">残 ' + p.available + "</span>" : "") + "</td>" +
         '<td><span class="tag ' + (p.id < 0 ? "off" : c.status === "active" ? "on" : "off") + '">' +
           (p.id < 0 ? "非公開" : c.status === "active" ? "公開" : "非公開") + "</span></td>";
@@ -580,7 +586,7 @@
     var isDel = st.dels.indexOf(p.id) >= 0;
     box.innerHTML =
       "<p style='margin:0 0 .2rem'><strong>" + (isNew ? "新しい商品" : "#" + p.id) + "</strong> " +
-        '<span class="tag">' + esc(contentLabels(p).join("・")) + "</span></p>" +
+        '<span class="tag">' + esc(contentLabels(p).join("・") || "中身なし") + "</span></p>" +
       '<p class="muted" style="margin:0 0 .6rem">' +
         (isNew
           ? "渡すもの（中身）をいくつでも入れられます。取り込むと作成されます"
@@ -672,7 +678,6 @@
       box.querySelectorAll("[data-rm]").forEach(function (b) {
         b.addEventListener("click", function () {
           parts.splice(Number(b.dataset.rm), 1);
-          if (!parts.length) parts.push({ type: "code", count: 1 });
           touched();
         });
       });
@@ -724,13 +729,12 @@
 
   /** 渡すものの一覧。1つでも複数でも同じ画面で扱う */
   function partsUI(p) {
-    var parts = p.driver_config.parts || (p.driver_config.parts = [
-      { type: p.driver || "code", count: 1 }
-    ]);
+    // ★ 無ければ空で始める。**勝手に1つ作らない**（2026-09-01）
+    if (!Array.isArray(p.driver_config.parts)) p.driver_config.parts = [];
+    var parts = p.driver_config.parts;
     var rows = parts.map(function (pt, k) {
-      // ★ 最後の1つは外せない。中身が空の商品は作れない
       var head = '<div class="h"><strong>' + esc(DRIVER[pt.type] || pt.type) + "</strong>" +
-        (parts.length <= 1 ? "" : '<button class="rm" data-rm="' + k + '">外す</button>') +
+        '<button class="rm" data-rm="' + k + '">外す</button>' +
         "</div>";
       // ★ 中身の名前（2026-09-01）。公開前に Bot で設定するとき、
       //   「1つ目（ロール）」ではなく付けた名前で選べるようにするためのもの。
@@ -784,9 +788,13 @@
                  "＋" + esc(DRIVER[d]) + "</button>";
         }).join(" ") + "</p>";
 
+    var empty = parts.length
+      ? ""
+      : '<p class="later" style="margin:.2rem 0">まだ何も入っていません。' +
+        "下から選んで足してください（1つ以上必要です）。</p>";
     return '<div class="parts"><label style="margin-top:0">渡すもの' +
            '<span class="count" style="font-weight:400">いくつでも入れられます</span>' +
-           "</label>" + rows + add + "</div>";
+           "</label>" + empty + rows + add + "</div>";
   }
 
   function count(id, n, max) {
