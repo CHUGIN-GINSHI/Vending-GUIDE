@@ -177,7 +177,7 @@
 <div class="wrap">
   <header class="top">
     <p class="eyebrow">駐銀 自販機Bot</p>
-    <h1>自販機の編集台 <span class="ver">2026-09-01b</span></h1>
+    <h1>自販機の編集台 <span class="ver">2026-09-02a</span></h1>
     <p class="lede">
       商品とパネルをここで編集し、設定ファイルを作ります。Discord での見え方はその場で確認できます。
       <strong>読み込んだ内容はこのブラウザから出ません。</strong>
@@ -187,12 +187,27 @@
   <section id="load">
     <h2>書き出しを読み込む</h2>
     <p>Discord で <code>/設定 書き出し</code>（出品者）または <code>/運営 書き出し</code>（運営）を実行し、
-      添付された <code>.json</code> をここに置いてください。</p>
+      添付された <code>.json</code> をここに置いてください。<strong>貼り付けでも読み込めます。</strong></p>
     <div class="drop" id="drop">
       <p style="margin:0"><strong>ファイルをドロップ</strong>、またはクリックして選択</p>
       <p class="muted" style="margin:.4rem 0 0">まだ書き出しが無ければ、下の見本で試せます</p>
       <input type="file" id="file" accept=".json,application/json" class="hide">
     </div>
+    <!-- ★ 出す側に「文字をコピー」があるのに、入れる側はファイルだけだった（2026-09-02）。
+         スマートフォンでは添付を保存してから拾うことになり、ここが一番詰まる。
+         対称にする。 -->
+    <details id="pastebox">
+      <summary>ファイルを保存せずに貼り付ける</summary>
+      <p class="muted" style="margin:.5rem 0 .4rem">
+        Discord の添付を開いて中身をすべて選択し、ここに貼ってください。
+        スマートフォン向けです。
+      </p>
+      <textarea id="pastein" rows="4" placeholder="書き出しの中身を貼り付け"
+                style="width:100%;font-family:ui-monospace,monospace;font-size:.85rem"></textarea>
+      <p style="margin:.5rem 0 0">
+        <button class="btn" id="pasteload">貼り付けた内容を読み込む</button>
+      </p>
+    </details>
     <p style="margin-top:.8rem">
       <button class="btn ghost" id="sample">見本を読み込む</button>
       <span class="muted" id="loaded" style="margin-left:.8rem"></span>
@@ -323,7 +338,7 @@
   <footer>
     このページは読み込んだ内容を送信しません。すべてブラウザの中で処理しています。<br>
     設定ファイルの形式は v1 です。Bot 側が対応していない版は取り込めません。<br>
-    編集台の版: <strong>2026-09-01b</strong>（画面が古いときは再読み込みしてください）
+    編集台の版: <strong>2026-09-02a</strong>（画面が古いときは再読み込みしてください）
   </footer>
 </div>
 
@@ -443,20 +458,41 @@
     t.addEventListener("click", function () { showPane(t.dataset.pane); });
   });
 
+  /**
+   * 文字列から読み込む。ファイルも貼り付けもここを通す。
+   *
+   * ★ 経路を2つ持つと、片方だけ直したときにずれる。入口の違いは読み方だけにする。
+   */
+  function loadText(text) {
+    var t = String(text == null ? "" : text).trim();
+    if (!t) {
+      $("loaderr").innerHTML = '<div class="warnbox"><b>読み込めません</b><br>' +
+        "中身が空です。書き出しの内容をすべて貼り付けてください。</div>";
+      return false;
+    }
+    var o = null;
+    try { o = JSON.parse(t); } catch (e) { o = null; }
+    if (o === null) {
+      // ★ 途中で切れた貼り付けは起きやすい。何が起きたかを言う
+      var hint = (t.charAt(0) !== "{")
+        ? "先頭が <code>{</code> ではありません。全体を選んでいるか確かめてください。"
+        : "末尾まで貼り付けられていない可能性があります。";
+      $("loaderr").innerHTML = '<div class="warnbox"><b>読み込めません</b><br>' +
+        "JSON として解釈できませんでした。" + hint + "</div>";
+      return false;
+    }
+    return load(o);
+  }
+
   function readFile(f) {
     var r = new FileReader();
-    r.onload = function () {
-      var o = null;
-      try { o = JSON.parse(String(r.result)); }
-      catch (e) { o = null; }
-      if (o === null) {
-        $("loaderr").innerHTML = '<div class="warnbox"><b>読み込めません</b><br>JSON として解釈できませんでした。書き出したファイルをそのままお使いください。</div>';
-        return;
-      }
-      load(o);
-    };
+    r.onload = function () { loadText(r.result); };
     r.readAsText(f);
   }
+
+  $("pasteload").addEventListener("click", function () {
+    if (loadText($("pastein").value)) $("pastein").value = "";   // 成功したら残さない
+  });
 
   var drop = $("drop");
   drop.addEventListener("click", function () { $("file").click(); });
