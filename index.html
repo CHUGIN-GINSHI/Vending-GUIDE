@@ -403,7 +403,7 @@
         <li><a href="#trouble"><b>—</b><span>つまずきやすいところ</span></a></li>
         <li><a href="#buyers"><b>—</b><span>購入者への案内</span></a></li>
         <li><a href="#terms"><b>—</b><span>利用規約</span></a></li>
-        <li><a href="manage.html"><b>▸</b><span>編集台をひらく</span></a></li>
+        <li><a href="#tool"><b>—</b><span>編集台</span></a></li>
       </ol>
     </nav>
 
@@ -634,6 +634,13 @@
 
       <section id="trouble">
         <h2>つまずきやすいところ</h2>
+
+        <div class="note">
+          <span class="tag">編集台が開けない／アクセス権がありませんと出る</span>
+          <p><strong>初回の認証が済んでいません。</strong>会話の入力欄にあるアプリのアイコンから <strong>CVM</strong> を選び、「アプリを追加」→「<strong>サーバーを認証</strong>」まで進めてください。</p>
+          <p>Bot がすでにサーバーにいても、編集台は<strong>別に認証が要ります</strong>。途中で閉じると認可が残りません。</p>
+          <p>認証を済ませても出る場合は、Discord を一度完全に終了して開き直してください。設定の反映に数分かかることがあります。</p>
+        </div>
 
         <div class="note">
           <span class="tag">PayPay リンクが購入画面に出ない</span>
@@ -886,8 +893,24 @@
 
       <section id="tool">
         <h2>編集台</h2>
-        <p>商品とパネルは<strong><a href="manage.html">編集台</a></strong>で編集できます。Discord での見え方をその場で確認しながら設定を作り、できたファイルを取り込んで反映します。</p>
-        <p class="muted">読み込んだ内容はブラウザから出ません。設定はファイルとして手元に保存されます。</p>
+        <p>商品とパネルは<strong>編集台</strong>で編集できます。Discord での見え方をその場で確認しながら作れます。<strong>Discord の中で開くので、ファイルの持ち運びは要りません。</strong></p>
+
+        <h3>開き方</h3>
+        <ol>
+          <li>会話の入力欄にある<strong>アプリのアイコン</strong>を押します</li>
+          <li>一覧から <strong>CVM</strong> を選びます</li>
+          <li><strong>初回だけ</strong>「アプリを追加」→「<strong>サーバーを認証</strong>」まで進めます</li>
+          <li>「アプリを開く」で編集台が開きます</li>
+        </ol>
+        <p><strong>3 を最後まで進めてください。</strong>Bot がすでにサーバーにいても、編集台は別に認証が要ります。途中で閉じると「このサーバーにはリクエストされたアクティビティへのアクセス権がありません」と表示されます。</p>
+
+        <h3>保存のしかた</h3>
+        <p>編集したら「<strong>Discord に反映する</strong>」を押します。<strong>何がどう変わるかが先に出る</strong>ので、確かめてから「適用する」を押してください。押すまでは何も変わりません。</p>
+        <p class="muted">使えるのは、サーバーの管理権限がある方と、<code>/設定 担当ロール</code> で指定された方です。</p>
+
+        <h3>ファイルで受け渡す方法（予備）</h3>
+        <p><a href="manage.html">ブラウザ版の編集台</a>も当面のあいだ使えます。<code>/設定 書き出し</code> で保存したファイルを読み込み、編集して <code>/設定 取り込み</code> で戻す方法です。</p>
+        <p class="muted">こちらは読み込んだ内容がブラウザから出ません。Discord の外へ設定を持ち出したいときにもお使いいただけます。</p>
       </section>
 
       <p class="end">
