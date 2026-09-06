@@ -214,6 +214,41 @@
   section h3 { font-size: 1.12rem; margin: 2.3rem 0 0.9rem; letter-spacing: 0.01em; }
   section h4 { font-size: 0.98rem; margin: 1.7rem 0 0.7rem; color: var(--brass); letter-spacing: 0.04em; }
   p { margin: 0 0 1.05rem; max-width: 40em; }
+
+  /* ★★ 大事なことだけを地に出し、細部は畳む（2026-09-11・利用者の指摘）。
+     全部を同じ濃さで並べると、どこを読めばよいか分からない。 */
+  details.more {
+    margin: 0 0 1.2rem;
+    border: 1px solid var(--hair);
+    border-radius: 4px;
+    background: rgba(0,0,0,0.02);
+  }
+  details.more > summary {
+    cursor: pointer;
+    padding: 0.62rem 0.95rem;
+    font-size: 0.86rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary::before {
+    content: "＋";
+    font-size: 0.9em;
+    color: var(--brass);
+    flex: none;
+  }
+  details.more[open] > summary::before { content: "−"; }
+  details.more > summary:hover { color: var(--ink); }
+  details.more[open] > summary { border-bottom: 1px solid var(--hair); }
+  .more-body { padding: 1rem 0.95rem 0.2rem; }
+  .more-body > :last-child { margin-bottom: 0.9rem; }
+  /* 規約は条名そのものを見出しにする。数が多いので余白を詰める */
+  details.more.art { margin-bottom: 0.4rem; }
+  details.more.art > summary { color: var(--ink); letter-spacing: 0.02em; }
   .muted { color: var(--muted); }
 
   /* 手順 — 番号は「順序が本当に意味を持つ」からこそ付ける */
@@ -402,6 +437,7 @@
         <li><a href="#s8"><b>8</b><span>パネルを置く</span></a></li>
         <li><a href="#s9"><b>9</b><span>自分で1件買ってみる</span></a></li>
         <li><a href="#tool"><b>—</b><span>マネージャー</span></a></li>
+        <li><a href="#parts"><b>—</b><span>中身（部品）の考えかた</span></a></li>
         <li><a href="#pay"><b>—</b><span>支払い方法の選び方</span></a></li>
         <li><a href="#kind"><b>—</b><span>商品の種別</span></a></li>
         <li><a href="#apply"><b>—</b><span>自動受け取りを申し込む</span></a></li>
@@ -434,12 +470,16 @@
           <div class="step-body">
             <div class="slot"><b>/設定 受取先</b> <i>[会員]</i><button class="copy" type="button">コピー</button></div>
             <p><code>会員</code> を省略すると、実行したあなた自身が受取先になります。ふつうはそのままで構いません。</p>
+          <details class="more">
+            <summary>くわしく</summary>
+            <div class="more-body">
             <div class="note warn">
               <span class="tag">先にやる</span>
               <p>受取先を決めないまま商品が売れると、<strong>売上は保留になり、口座には届きません</strong>。代金がなくなるわけではありませんが、あとから手作業で拾う必要が出ます。売り始める前に済ませてください。</p>
             </div>
-            <p>受取先には<strong>駐銀の口座が必要</strong>です。口座がない相手を指定すると、その場で断られます。</p>
-          </div>
+            <p>受取先には<strong>駐銀の口座が必要</strong>です。口座がない相手を指定すると、その場で断られます。</p></div>
+          </details>
+        </div>
         </article>
 
         <article class="step" id="s3">
@@ -450,6 +490,9 @@
           <div class="step-body">
             <div class="slot"><b>/設定 決済方法</b> <i>方法:&lt;選ぶ&gt; 有効:True</i><button class="copy" type="button">コピー</button></div>
             <p>4つから選べます。複数を同時に有効にして、購入者に選ばせることもできます。違いは<a href="#pay">支払い方法の選び方</a>にまとめました。</p>
+          <details class="more">
+            <summary>くわしく</summary>
+            <div class="more-body">
             <div class="note warn">
               <span class="tag">申し込みが必要</span>
               <p><strong>PayPay リンク（自動受け取り）は、そのままでは有効にできません。</strong>運営者が代金をお預かりする方式のため、個別のお申し込みと確認が必要です。</p>
@@ -459,8 +502,9 @@
               <span class="tag">手動確認を使うなら</span>
               <p><strong>PayPay 手動確認</strong>を有効にする前に、送金先と確認チャンネルの登録が要ります。先に済ませていないと有効化できません。</p>
               <div class="slot" style="margin-top:.6rem;margin-bottom:0"><b>/設定 決済</b> <i>paypay_id:&lt;あなたのID&gt; 確認チャンネル:&lt;#チャンネル&gt;</i><button class="copy" type="button">コピー</button></div>
-            </div>
-          </div>
+            </div></div>
+          </details>
+        </div>
         </article>
 
         <article class="step" id="s4">
@@ -470,6 +514,9 @@
           </div>
           <div class="step-body">
             <p>商品は<strong>マネージャー</strong>で作ります。会話の入力欄にある<strong>アプリのアイコン</strong>を押して <strong>CVM</strong> を選んでください。初めて開くときは<a href="#tool">マネージャー</a>の手順をご覧ください。</p>
+          <details class="more">
+            <summary>くわしく</summary>
+            <div class="more-body">
             <p>「商品を追加」を押して、次を入れます。</p>
             <ul class="plain">
               <li><strong>商品名</strong> — 購入者に見える名前</li>
@@ -486,8 +533,9 @@
             <div class="note warn">
               <span class="tag">あとから変えられない</span>
               <p><strong>中身の組み合わせは、作るときにしか決められません。</strong>名前・説明・価格・購入上限はあとからいくらでも直せますが、「コードを渡す商品」を「ロールを渡す商品」に変えることはできません。変えたい場合は新しく作り直してください。</p>
-            </div>
-          </div>
+            </div></div>
+          </details>
+        </div>
         </article>
 
         <article class="step" id="s5">
@@ -498,6 +546,9 @@
           <div class="step-body">
             <div class="slot"><b>/商品設定</b> <i>商品:&lt;選ぶ&gt;</i><button class="copy" type="button">コピー</button></div>
             <p>種別に応じたボタンが出ます。押して設定してください。<strong>何度でもやり直せます。</strong></p>
+          <details class="more">
+            <summary>くわしく</summary>
+            <div class="more-body">
             <div class="scroller">
               <table>
                 <thead><tr><th>種別</th><th>設定すること</th></tr></thead>
@@ -512,8 +563,9 @@
             <div class="note warn">
               <span class="tag">ロールを渡すなら</span>
               <p>サーバー設定の「ロール」で、<strong>Bot のロールを渡したいロールより上に置いてください</strong>。下にあると Discord 側で拒否され、ロールを付けられません。</p>
-            </div>
-          </div>
+            </div></div>
+          </details>
+        </div>
         </article>
 
         <article class="step" id="s6">
@@ -539,11 +591,15 @@
           <div class="step-body">
             <div class="slot"><b>/cvm l</b><button class="copy" type="button">コピー</button></div>
             <p>一覧に出る<strong>「公開する」</strong>ボタンを押します。ここで初めて購入者から見えるようになります。マネージャーから公開することもできます。</p>
+          <details class="more">
+            <summary>くわしく</summary>
+            <div class="more-body">
             <div class="note info">
               <span class="tag">公開できないとき</span>
               <p>在庫が1つも無い商品は公開できません。<strong>買えない商品を並べないため</strong>です。理由はボタンを押したときに出ます。</p>
-            </div>
-          </div>
+            </div></div>
+          </details>
+        </div>
         </article>
 
         <article class="step" id="s8">
@@ -564,13 +620,17 @@
           </div>
           <div class="step-body">
             <p>これが最後の確認です。<strong>実際に売れる状態かどうかは、通してみるまで分かりません。</strong>安い商品を1つ作って、自分で買ってみてください。</p>
+          <details class="more">
+            <summary>くわしく</summary>
+            <div class="more-body">
             <p>PayPay リンクで買った場合、精算は5分ごとに動きます。少し待ってから確認してください。</p>
             <div class="slot"><b>/cvm e</b><button class="copy" type="button">コピー</button></div>
             <div class="note info">
               <span class="tag">通ったサイン</span>
               <p>「入金済み 1 件」に変わっていれば、購入から精算まで全部つながっています。</p>
-            </div>
-          </div>
+            </div></div>
+          </details>
+        </div>
         </article>
       </section>
 
@@ -593,6 +653,9 @@
 
         <h3>画面の見かた</h3>
         <p>上に2つのタブがあります。<strong>商品を編集する</strong>と<strong>パネルを作る</strong>です。どちらも、開いた時点でそのサーバーの中身が入っています。</p>
+        <details class="more">
+          <summary>くわしく</summary>
+          <div class="more-body">
 
         <h3 id="tool-p">商品を編集する</h3>
         <p>左に商品の一覧、右に編集欄が出ます。一覧から選ぶと編集欄が開きます。</p>
@@ -615,10 +678,13 @@
         </div>
 
         <h3 id="tool-panel">パネルを作る</h3>
-        <p>購入ボタンを置く「パネル」を、Discord での見え方そのままで組みます。<strong>打ち込む場所が、そのまま出来上がりです。</strong></p>
-
-        <h4>組み立て</h4>
+        <p>購入ボタンを置く「パネル」を、Discord での見え方そのままで組みます。<strong>打ち込む場所が、そのまま出来上がりです。</strong></p></div>
+        </details>
+<h4>組み立て</h4>
         <p>まず<strong>並べる商品</strong>を選びます。次に、道具の下段にある「足す」から中身を入れていきます。</p>
+        <details class="more">
+          <summary>くわしく</summary>
+          <div class="more-body">
         <div class="scroller">
           <table>
             <thead><tr><th>足すもの</th><th>何になるか</th></tr></thead>
@@ -633,10 +699,13 @@
           </table>
         </div>
         <p>足したものは<strong>いま触っている枠</strong>に入ります。枠が2枚以上あるときは、選んでいる枠が薄い線で示されます。押した場所がその枠になります。</p>
-        <p>外すときは、それぞれのゴミ箱を押します。<strong>枠ごと外すこともできます。</strong>枠を全部外すと、本文とボタンだけのパネルになります。</p>
-
-        <h4>文字の書式</h4>
+        <p>外すときは、それぞれのゴミ箱を押します。<strong>枠ごと外すこともできます。</strong>枠を全部外すと、本文とボタンだけのパネルになります。</p></div>
+        </details>
+<h4>文字の書式</h4>
         <p>説明・項目の中身・枠の外の本文では、上の道具で書式を付けられます。</p>
+        <details class="more">
+          <summary>くわしく</summary>
+          <div class="more-body">
         <div class="scroller">
           <table>
             <thead><tr><th>道具</th><th>できること</th></tr></thead>
@@ -652,35 +721,130 @@
         <div class="note info">
           <span class="tag">見出しは2種類あります</span>
           <p><strong>「枠の見出し」は枠に1つだけ</strong>で、文字だけです。<strong>文章の途中に見出しを置きたいときは、説明の中で H1〜H3 を使います。</strong>こちらは何個でも置けます。</p>
-        </div>
-
-        <h4>ボタンと色</h4>
+        </div></div>
+        </details>
+<h4>ボタンと色</h4>
         <p>ボタンの色は、<strong>見え方のボタンを直接押す</strong>と変わります（青 → 灰 → 緑 → 赤）。Discord はこの4色しか受け付けません。</p>
-        <p>枠の左端の色は、上の道具の<strong>色見本</strong>か、<strong>枠の左端の帯</strong>を押すと選べます。枠ごとに変えられます。</p>
-
-        <h4>置く前に出る知らせ</h4>
+        <details class="more">
+          <summary>くわしく</summary>
+          <div class="more-body">
+        <p>枠の左端の色は、上の道具の<strong>色見本</strong>か、<strong>枠の左端の帯</strong>を押すと選べます。枠ごとに変えられます。</p></div>
+        </details>
+<h4>置く前に出る知らせ</h4>
         <p>Discord に断られる条件を、置く前に出します。パネルは<strong>置き直しが利かない</strong>ためです。</p>
+        <details class="more">
+          <summary>くわしく</summary>
+          <div class="more-body">
         <ul class="plain">
           <li><strong>赤</strong> — 直さないと置けません（文字数の超過、空の枠、非公開の商品など）</li>
           <li><strong>黄</strong> — 置けますが、そうなりますという知らせ（在庫切れ、枠なしなど）</li>
         </ul>
-        <p class="muted">道具の右にある数字は<strong>枠ぜんぶの合計の文字数</strong>です。ここが 6000 を超えると、Discord はメッセージごと受け付けません。</p>
-
-        <h4>保存して置く</h4>
+        <p class="muted">道具の右にある数字は<strong>枠ぜんぶの合計の文字数</strong>です。ここが 6000 を超えると、Discord はメッセージごと受け付けません。</p></div>
+        </details>
+<h4>保存して置く</h4>
         <ol>
           <li>いちばん下で<strong>パネルの名前</strong>を入れます（必須です）</li>
           <li>「<strong>保存</strong>」を押します</li>
           <li>Discord で <code>/cvm p</code> を実行し、<code>保存済み</code> から選びます</li>
         </ol>
         <p>保存したパネルは「<strong>保存してあるパネル</strong>」に並びます。名前・保存日・設置済みかどうかと、<strong>どのチャンネルに置いたか</strong>が出ます。</p>
+        <details class="more">
+          <summary>くわしく</summary>
+          <div class="more-body">
         <div class="note warn">
           <span class="tag">置いたら固定されます</span>
           <p><strong>一度置いたパネルは編集できません。</strong>一覧の「コピー」を押すと写しが開き、直して保存すると<strong>別のパネル</strong>として残ります。置いてあるほうは変わりません。同じものをもう一度置くことは、そのまま選べばできます。</p>
         </div>
-        <p class="muted">画像を入れたパネルは、置くときに <code>/cvm p</code> の <code>画像</code> にも同じ画像を添付してください。マネージャーが持っているのは<strong>ファイル名だけ</strong>です。</p>
-
-        <h3>売れ行き</h3>
+        <p class="muted">画像を入れたパネルは、置くときに <code>/cvm p</code> の <code>画像</code> にも同じ画像を添付してください。マネージャーが持っているのは<strong>ファイル名だけ</strong>です。</p></div>
+        </details>
+<h3>売れ行き</h3>
         <p>商品の一覧の上に、直近30日の<strong>件数と売上</strong>が出ます。誰が買ったかは出ません。詳しい精算の状況は <code>/cvm e</code> で見られます。</p>
+      </section>
+
+      <section id="parts">
+        <h2>中身（部品）の考えかた</h2>
+        <p>商品は<strong>「何を渡すか」</strong>を1つ以上持ちます。これを<strong>中身</strong>と呼びます。1つでも複数でも同じ扱いです。</p>
+
+        <div class="note stop">
+          <span class="tag">いちばん間違えやすいところ</span>
+          <p><strong>中身の「名前」に、コードやURLを書かないでください。</strong>名前は<strong>見分けるためのラベル</strong>です。渡すもの本体は、商品を作ったあとに Discord から入れます。</p>
+        </div>
+
+        <h3>どこで何を決めるか</h3>
+        <p>境目はひとつだけ覚えれば足ります。</p>
+        <div class="scroller">
+          <table>
+            <thead><tr><th></th><th>決めること</th></tr></thead>
+            <tbody>
+              <tr><th>マネージャー</th><td><strong>どんな箱を並べるか</strong><br>種別・いくつ・名前</td></tr>
+              <tr><th>Discord のコマンド</th><td><strong>箱に何を入れるか</strong><br>コード・ファイル・ロール・受付先</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details class="more">
+          <summary>種別ごとの内訳を見る</summary>
+          <div class="more-body">
+            <div class="scroller">
+              <table>
+                <thead><tr><th>種別</th><th>マネージャーで決める</th><th>あとから入れる</th></tr></thead>
+                <tbody>
+                  <tr><th>コード</th><td>名前だけ</td><td><code>/cvm s</code> でコードを投入</td></tr>
+                  <tr><th>ファイル</th><td>名前／<strong>URLを渡すか、ファイルを渡すか</strong>／URLならその URL</td><td>ファイルを渡す場合、<code>/商品設定</code> で提示</td></tr>
+                  <tr><th>ロール</th><td>名前／<strong>配る数</strong>（1〜10）</td><td><code>/商品設定</code> でどのロールか</td></tr>
+                  <tr><th>手動チケット</th><td>名前（<strong>作られるチャンネル名になります</strong>）</td><td><code>/商品設定</code> で受付先チャンネル</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="muted">ファイルの「URLを渡す」だけは、URL そのものをマネージャーで入れます。配布先が決まっていることが<strong>商品の形の一部</strong>だからです。</p>
+          </div>
+        </details>
+
+        <h3>名前は何のためにあるか</h3>
+        <p>名前は<strong>省略できます</strong>。付けると、次の2つで役に立ちます。</p>
+        <ul class="plain">
+          <li><code>/商品設定</code> で中身を選ぶとき、「1つ目（ロール）」ではなく付けた名前で選べます</li>
+          <li>手動チケットでは、<strong>作られるチャンネルの名前</strong>になります</li>
+        </ul>
+
+        <details class="more">
+          <summary>良い名前・悪い名前</summary>
+          <div class="more-body">
+            <div class="scroller">
+              <table>
+                <thead><tr><th></th><th>例</th></tr></thead>
+                <tbody>
+                  <tr><th>良い</th><td>支援ロール ／ 壁紙データ ／ 相談枠 ／ 引換コード</td></tr>
+                  <tr><th class="no">悪い</th><td class="no">ABCD-1234-EFGH ／ https://example.com/file.zip ／ ID とパスワード</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>悪い例はどれも<strong>渡すもの本体</strong>です。名前は<strong>購入者には見えません</strong>ので、中身を書いても届きませんし、設定画面に長い文字列が並ぶだけになります。</p>
+          </div>
+        </details>
+
+        <h3>組み合わせの決まり</h3>
+        <ul class="plain">
+          <li><strong>コードは1つまで</strong> — 2つあると、入れた在庫がどちらのものか決まりません</li>
+          <li><strong>手動チケットは1つまで</strong> — 2つあると、注文1件に受付が2つできます</li>
+          <li><strong>ロールは10個まで</strong> — 数を指定すると、その数だけ箱ができます</li>
+          <li>ファイルは何個でも入れられます</li>
+        </ul>
+
+        <div class="note warn">
+          <span class="tag">あとから変えられない</span>
+          <p><strong>中身の組み合わせは、商品を作るときにしか決められません。</strong>「コードを渡す商品」を「ロールを渡す商品」に変えることはできません。名前・説明・価格・購入上限は、あとからいくらでも直せます。</p>
+          <p>変えたい場合は、新しく作り直してください。すでに売れた商品の中身が後から変わると、<strong>買った人と買う人で受け取るものが違ってしまう</strong>ためです。</p>
+        </div>
+
+        <details class="more">
+          <summary>在庫の数え方</summary>
+          <div class="more-body">
+            <p><strong>コードを含む商品だけ</strong>、在庫が数で決まります。入れたコードの数が、そのまま売れる数です。</p>
+            <p>コードを含まない商品（ロールだけ、ファイルだけ、など）は<strong>在庫が無限</strong>です。何人でも買えます。</p>
+            <p class="muted">複数の中身を持つ商品では、コードが1つ含まれていれば、その在庫数が商品全体の在庫になります。</p>
+          </div>
+        </details>
       </section>
 
       <section id="pay">
@@ -835,20 +999,31 @@
         <h2>利用規約</h2>
         <p class="muted">最終更新: 2026-08-25</p>
         <div class="terms">
-        <h3>第1条（適用）</h3>
+        
+        <details class="more art">
+          <summary>第1条（適用）</summary>
+          <div class="more-body">
         <ol>
         <li>本規約は、運営者が提供する自販機Bot（以下「本サービス」）の利用に関し、運営者・サーバー管理者・ 購入者の間に適用される。</li>
         <li>本サービスは、Discord サーバー上での商品の販売および決済の場を提供するものである。 <strong>商品の売主はサーバー管理者であり、運営者は売買契約の当事者とならない。</strong></li>
         <li>本サービスの利用にあたっては、Discord 利用規約およびコミュニティガイドラインを遵守すること。 これらに反する利用は、本規約にも違反するものとみなす。</li>
-        </ol>
-        <h3>第2条（同意）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第2条（同意）</summary>
+          <div class="more-body">
         <ol>
         <li>サーバー管理者は、本サービスをサーバーに導入する際に本規約へ同意するものとし、 <strong>同意しない場合、販売機能は有効化されない。</strong></li>
         <li>購入者は、初回の購入手続の際に本規約へ同意するものとし、 <strong>同意しない場合、購入はできない。</strong></li>
         <li>運営者は同意の事実（同意者・同意した版・日時）を記録する。</li>
         <li>未成年者が本サービスを利用する場合は、親権者等の同意を得たうえで利用すること。</li>
-        </ol>
-        <h3>第3条（アカウント・駐銀口座）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第3条（アカウント・駐銀口座）</summary>
+          <div class="more-body">
         <ol>
         <li>本サービスの一部の決済方式では、運営者が管理する口座システム（以下「駐銀口座」）を利用する。</li>
         <li>駐銀口座は<strong>運営者が一括して管理</strong>し、<strong>サーバーをまたいで共通</strong>である。</li>
@@ -856,8 +1031,12 @@
         <li>駐銀口座の現金への払い戻し（取り出し）は、運営者が定める窓口においてのみ行う。</li>
         <li>利用者は自己のアカウントを第三者に利用させてはならない。アカウントの管理不十分により 生じた損害の責任は当該利用者が負う。</li>
         <li><strong>売上の受取先として駐銀口座を指定できるのは、駐銀の会員に限る</strong>（第4条の2第3項）。 会員でない者を受取先に指定することはできない。</li>
-        </ol>
-        <h3>第4条（ポイント・決済）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第4条（ポイント・決済）</summary>
+          <div class="more-body">
         <ol>
         <li>本サービスで利用できる決済方式は、サーバーごとにサーバー管理者が選択する。</li>
         <li>PayPay による決済には二つの方式がある。</li>
@@ -870,8 +1049,12 @@
         <li>駐銀口座を用いる決済において、購入代金は購入者の駐銀口座から引き落とされ、 サーバー管理者の駐銀口座へ振り替えられる。</li>
         <li>決済が完了したにもかかわらず商品が引き渡されなかった場合、運営者は当該取引を取り消し、 購入者へ返金する。</li>
         <li><strong>本サービスのポイントは、運営者が定める窓口を除き、現金その他の財産的価値と交換できない。</strong></li>
-        </ol>
-        <h3>第4条の2（PayPay リンクによる決済と売上の精算）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第4条の2（PayPay リンクによる決済と売上の精算）</summary>
+          <div class="more-body">
         <ol>
         <li>「PayPay リンク（自動受け取り）」は、<strong>運営者が個別に許可したサーバーでのみ利用できる。</strong> 許可はサーバー単位で与え、運営者は理由を示すことなく許可を拒み、または撤回できる。 撤回した場合、当該決済方式は直ちに利用できなくなる。</li>
         <li>前項の方式では、購入者が作成した PayPay の送金リンクを<strong>運営者が受け取る</strong>。</li>
@@ -881,28 +1064,44 @@
         <li><strong>本条の方式において、運営者は購入代金を一時的に受領する。</strong> サーバー管理者は、<strong>購入者が運営者へ支払った時点で購入者の代金支払債務が消滅する</strong>ことに 同意する。運営者からサーバー管理者への振替が未了であることを理由に、サーバー管理者が 購入者へ請求することはできない。</li>
         <li>購入者が支払ったにもかかわらず商品が引き渡されなかった場合は、第4条4項による。</li>
         <li>サーバー管理者は、本条の方式で受け取った売上について、自らに納税その他の義務が生じうる ことを理解し、その履行は自らの責任で行う。</li>
-        </ol>
-        <h3>第4条の3（手数料）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第4条の3（手数料）</summary>
+          <div class="more-body">
         <ol>
         <li>運営者は、本サービスの利用について手数料を徴収することができる。</li>
         <li><strong>現在、手数料は無料（0%）である。</strong></li>
         <li>手数料を変更する場合、運営者は<strong>事前に告知</strong>する。変更後の手数料は、告知後に成立した 取引について適用する。</li>
-        </ol>
-        <h3>第4条の4（購入者の確認）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第4条の4（購入者の確認）</summary>
+          <div class="more-body">
         <ol>
         <li>運営者は不正利用の防止のため、購入者が提出した送金リンクの送金者情報を記録し、 当該購入者の Discord アカウントと対応づけることがある。</li>
         <li>記録と一致しない送金者からの提出があった場合、運営者は取引を保留し、確認を行うことがある。</li>
         <li>前項の保留により引渡しが遅れることについて、運営者は責任を負わない。</li>
         <li>運営者は、本条により記録した情報を不正利用の防止の目的にのみ利用する。</li>
-        </ol>
-        <h3>第5条（販売する商品）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第5条（販売する商品）</summary>
+          <div class="more-body">
         <ol>
         <li>サーバー管理者は、自らが販売する商品について、適法であること、および販売する権利を 有していることを保証する。</li>
         <li>サーバー管理者は、商品の内容・数量・引渡方法・返品条件を購入者に対し明確に表示する。</li>
         <li>商品に関する購入者からの問い合わせ・苦情・紛争は、<strong>第一次的にサーバー管理者が対応する。</strong></li>
         <li>運営者は、販売される商品の内容を事前に審査する義務を負わない。ただし第6条に違反する 商品を認知した場合は、第9条の措置を講じることができる。</li>
-        </ol>
-        <h3>第6条（禁止事項）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第6条（禁止事項）</summary>
+          <div class="more-body">
         <p>以下の商品の販売、および以下の行為を禁止する。<strong>サーバー管理者・購入者の双方に適用される。</strong></p>
         <p><strong>(1) 法令に違反する物品・役務</strong></p>
         <ul>
@@ -928,15 +1127,23 @@
         <li><strong>未成年者に有害な物品・情報</strong></li>
         <li>本サービスの運営を妨害する行為、脆弱性を悪用する行為</li>
         <li>決済を経ずに商品を取得しようとする行為、二重取得を試みる行為</li>
-        </ul>
-        <h3>第6条の2（個別許可）</h3>
+        </ul></div>
+        </details>
+
+        <details class="more art">
+          <summary>第6条の2（個別許可）</summary>
+          <div class="more-body">
         <ol>
         <li>第6条(3)の RMT については、サーバー管理者が<strong>事前に運営者へ申請</strong>し、許可を得た場合に限り 販売できる。申請と許可は Discord 上の記録をもって足りる。</li>
         <li>運営者は、<strong>理由を示すことなく許可を拒み、または与えた許可を撤回できる。</strong></li>
         <li>許可はサーバーごと・商品ごとに与える。他のサーバー・他の商品には及ばない。</li>
         <li>許可を得ずに販売した場合、第9条の措置の対象とする。</li>
-        </ol>
-        <h3>第7条（返品・キャンセル）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第7条（返品・キャンセル）</summary>
+          <div class="more-body">
         <ol>
         <li><strong>デジタル商品の性質上、引渡し後の返品・返金は原則として受け付けない。</strong></li>
         <li>前項にかかわらず、次の場合は返金の対象とする。</li>
@@ -948,8 +1155,12 @@
         </ul>
         <ol>
         <li>返金の判断および実行は、駐銀口座を用いた決済においては運営者が、 それ以外の決済方式においてはサーバー管理者が行う。</li>
-        </ol>
-        <h3>第8条（サービスの提供）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第8条（サービスの提供）</summary>
+          <div class="more-body">
         <ol>
         <li><strong>本サービスは現状有姿で提供され、無停止での稼働を保証しない。</strong></li>
         <li>運営者は、次の場合に事前の通知なく本サービスの全部または一部を停止できる。</li>
@@ -962,8 +1173,12 @@
         </ul>
         <ol>
         <li><strong>本サービスは個人が運用する設備上で提供されており、停電等により停止することがある。</strong> 利用者はこれを理解したうえで利用するものとする。</li>
-        </ol>
-        <h3>第9条（違反時の措置）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第9条（違反時の措置）</summary>
+          <div class="more-body">
         <ol>
         <li>運営者は、本規約への違反またはそのおそれを認めた場合、事前の通知なく次の措置を講じることができる。</li>
         </ol>
@@ -976,8 +1191,12 @@
         <ol>
         <li>運営者は、法令に基づく開示請求があった場合、必要な範囲で情報を開示することがある。</li>
         <li>前各項の措置により利用者に生じた損害について、運営者は責任を負わない。 ただし運営者の故意または重過失による場合を除く。</li>
-        </ol>
-        <h3>第10条（データの取り扱い）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第10条（データの取り扱い）</summary>
+          <div class="more-body">
         <ol>
         <li>運営者は本サービスの提供のため、次の情報を記録する。</li>
         </ol>
@@ -994,25 +1213,38 @@
         <li>前項は取引の記録（注文・引渡し・精算）についての定めであり、**サーバーやアプリケーションの 動作ログはこれと別**に扱う。動作ログは保守の目的で保持し、容量に応じて順次削除する。</li>
         <li>手動チケット方式では、注文ごとに**購入者とサーバー管理者（担当者）が閲覧できる チャンネル**を作成することがある。当該チャンネルの内容はサーバー管理者が管理する。</li>
         <li>運営者は、サーバー管理者が作成したチャンネルの内容について責任を負わない。</li>
-        </ol>
-        <h3>第11条（免責）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第11条（免責）</summary>
+          <div class="more-body">
         <ol>
         <li>運営者は、サーバー管理者と購入者の間に生じた紛争について責任を負わない。</li>
         <li>運営者は、本サービスの利用により生じた損害について、 運営者の故意または重過失による場合を除き、責任を負わない。</li>
         <li>運営者が責任を負う場合であっても、その範囲は当該取引において 利用者が実際に支払った金額を上限とする。</li>
-        </ol>
-        <h3>第12条（規約の変更）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第12条（規約の変更）</summary>
+          <div class="more-body">
         <ol>
         <li>運営者は本規約を変更することができる。</li>
         <li>変更後の規約は、本サービス上での告知により効力を生じる。</li>
         <li><strong>重要な変更を行った場合、利用者に対し再度の同意を求める。</strong> 同意しない場合、本サービスの利用を継続できないことがある。</li>
-        </ol>
-        <h3>第13条（準拠法・管轄）</h3>
+        </ol></div>
+        </details>
+
+        <details class="more art">
+          <summary>第13条（準拠法・管轄）</summary>
+          <div class="more-body">
         <ol>
         <li>本規約は日本法に準拠する。</li>
         <li>本サービスに関して生じた紛争については、<strong>千葉地方裁判所</strong>を第一審の専属的合意管轄裁判所とする。</li>
-        </ol>
-        </div>
+        </ol></div>
+        </details>
+</div>
       </section>
 
       <p class="end">
