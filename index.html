@@ -209,6 +209,10 @@
     border-bottom: 1px solid var(--hair-firm);
     text-wrap: balance;
   }
+  /* ★ 編集台の節で h2 → h3 → h4 と深くなった（2026-09-10）。
+     既定のままだと段の違いが読めないので、間隔と重みで示す。 */
+  section h3 { font-size: 1.12rem; margin: 2.3rem 0 0.9rem; letter-spacing: 0.01em; }
+  section h4 { font-size: 0.98rem; margin: 1.7rem 0 0.7rem; color: var(--brass); letter-spacing: 0.04em; }
   p { margin: 0 0 1.05rem; max-width: 40em; }
   .muted { color: var(--muted); }
 
@@ -397,13 +401,13 @@
         <li><a href="#s7"><b>7</b><span>公開する</span></a></li>
         <li><a href="#s8"><b>8</b><span>パネルを置く</span></a></li>
         <li><a href="#s9"><b>9</b><span>自分で1件買ってみる</span></a></li>
+        <li><a href="#tool"><b>—</b><span>編集台</span></a></li>
         <li><a href="#pay"><b>—</b><span>支払い方法の選び方</span></a></li>
         <li><a href="#kind"><b>—</b><span>商品の種別</span></a></li>
         <li><a href="#apply"><b>—</b><span>自動受け取りを申し込む</span></a></li>
         <li><a href="#trouble"><b>—</b><span>つまずきやすいところ</span></a></li>
         <li><a href="#buyers"><b>—</b><span>購入者への案内</span></a></li>
         <li><a href="#terms"><b>—</b><span>利用規約</span></a></li>
-        <li><a href="#tool"><b>—</b><span>編集台</span></a></li>
       </ol>
     </nav>
 
@@ -417,7 +421,7 @@
             <h3>自販機を使えるようにする</h3>
           </div>
           <div class="step-body">
-            <div class="slot"><b>/設定 初期化</b><button class="copy" type="button">コピー</button></div>
+            <div class="slot"><b>/アップデート</b><button class="copy" type="button">コピー</button></div>
             <p>利用規約が表示されます。同意すると、このサーバーで自販機が使えるようになります。最初に一度だけ実行してください。</p>
           </div>
         </article>
@@ -465,17 +469,23 @@
             <h3>商品を作る</h3>
           </div>
           <div class="step-body">
-            <div class="slot"><b>/商品 追加</b> <i>種別:&lt;コード / ロール / ファイル / 手動チケット&gt;</i><button class="copy" type="button">コピー</button></div>
-            <p>種別を選ぶと入力欄が開きます。入れるのは4つです。</p>
+            <p>商品は<strong>編集台</strong>で作ります。会話の入力欄にある<strong>アプリのアイコン</strong>を押して <strong>CVM</strong> を選んでください。初めて開くときは<a href="#tool">編集台</a>の手順をご覧ください。</p>
+            <p>「商品を追加」を押して、次を入れます。</p>
             <ul class="plain">
               <li><strong>商品名</strong> — 購入者に見える名前</li>
               <li><strong>説明</strong> — 省略できます</li>
               <li><strong>価格（円）</strong> — 0以上の整数</li>
               <li><strong>1人あたりの購入上限</strong> — 空欄なら無制限</li>
+              <li><strong>中身</strong> — コード／ファイル／ロール／手動チケットから選びます</li>
             </ul>
+            <p>できたら「<strong>Discord に反映する</strong>」を押します。何がどう変わるかが先に出るので、確かめてから「適用する」を押してください。</p>
             <div class="note info">
               <span class="tag">覚えておく</span>
               <p>作った直後の商品は<strong>非公開</strong>です。この時点では購入者から見えません。設定を終えてから手順7で公開します。</p>
+            </div>
+            <div class="note warn">
+              <span class="tag">あとから変えられない</span>
+              <p><strong>中身の組み合わせは、作るときにしか決められません。</strong>名前・説明・価格・購入上限はあとからいくらでも直せますが、「コードを渡す商品」を「ロールを渡す商品」に変えることはできません。変えたい場合は新しく作り直してください。</p>
             </div>
           </div>
         </article>
@@ -486,7 +496,8 @@
             <h3>種別ごとの設定をする</h3>
           </div>
           <div class="step-body">
-            <p>商品を作ると、種別に応じたボタンが出ます。押して設定してください。</p>
+            <div class="slot"><b>/商品設定</b> <i>商品:&lt;選ぶ&gt;</i><button class="copy" type="button">コピー</button></div>
+            <p>種別に応じたボタンが出ます。押して設定してください。<strong>何度でもやり直せます。</strong></p>
             <div class="scroller">
               <table>
                 <thead><tr><th>種別</th><th>設定すること</th></tr></thead>
@@ -511,7 +522,7 @@
             <h3>在庫を入れる</h3>
           </div>
           <div class="step-body">
-            <div class="slot"><b>/在庫 追加</b> <i>商品:&lt;選ぶ&gt; [ファイル:&lt;添付&gt;]</i><button class="copy" type="button">コピー</button></div>
+            <div class="slot"><b>/cvm s</b> <i>商品:&lt;選ぶ&gt; [ファイル:&lt;添付&gt;]</i><button class="copy" type="button">コピー</button></div>
             <ul class="plain">
               <li><strong>コード</strong> — <code>.txt</code> か <code>.csv</code> を添付（1行に1コード）。省略すると入力欄が開きます</li>
               <li><strong>ファイル</strong> — 配布したいファイルを添付します（8MBまで）</li>
@@ -526,8 +537,12 @@
             <h3>公開する</h3>
           </div>
           <div class="step-body">
-            <p>商品の設定画面にある<strong>「公開する」</strong>ボタンを押します。ここで初めて購入者から見えるようになります。</p>
-            <p class="muted">いま何が公開されているかは <code>/商品 一覧</code> で確認できます。</p>
+            <div class="slot"><b>/cvm l</b><button class="copy" type="button">コピー</button></div>
+            <p>一覧に出る<strong>「公開する」</strong>ボタンを押します。ここで初めて購入者から見えるようになります。編集台から公開することもできます。</p>
+            <div class="note info">
+              <span class="tag">公開できないとき</span>
+              <p>在庫が1つも無い商品は公開できません。<strong>買えない商品を並べないため</strong>です。理由はボタンを押したときに出ます。</p>
+            </div>
           </div>
         </article>
 
@@ -537,7 +552,7 @@
             <h3>パネルを置く</h3>
           </div>
           <div class="step-body">
-            <div class="slot"><b>/自販機 設置</b><button class="copy" type="button">コピー</button></div>
+            <div class="slot"><b>/cvm p</b> <i>保存済み:&lt;選ぶ&gt; [画像:&lt;添付&gt;]</i><button class="copy" type="button">コピー</button></div>
             <p>実行したチャンネルに購入パネルが置かれます。購入者はここから「商品を選ぶ」を押して買います。</p>
           </div>
         </article>
@@ -550,13 +565,122 @@
           <div class="step-body">
             <p>これが最後の確認です。<strong>実際に売れる状態かどうかは、通してみるまで分かりません。</strong>安い商品を1つ作って、自分で買ってみてください。</p>
             <p>PayPay リンクで買った場合、精算は5分ごとに動きます。少し待ってから確認してください。</p>
-            <div class="slot"><b>/設定 売上</b><button class="copy" type="button">コピー</button></div>
+            <div class="slot"><b>/cvm e</b><button class="copy" type="button">コピー</button></div>
             <div class="note info">
               <span class="tag">通ったサイン</span>
               <p>「入金済み 1 件」に変わっていれば、購入から精算まで全部つながっています。</p>
             </div>
           </div>
         </article>
+      </section>
+
+      <section id="tool">
+        <h2>編集台</h2>
+        <p>商品とパネルは<strong>編集台</strong>で作ります。Discord での見え方をその場で確かめながら組めます。<strong>Discord の中で開くので、ファイルの持ち運びは要りません。</strong></p>
+
+        <h3>開き方</h3>
+        <ol>
+          <li>会話の入力欄にある<strong>アプリのアイコン</strong>を押します</li>
+          <li>一覧から <strong>CVM</strong> を選びます</li>
+          <li><strong>初回だけ</strong>「アプリを追加」→「<strong>サーバーを認証</strong>」まで進めます</li>
+          <li>「アプリを開く」で編集台が開きます</li>
+        </ol>
+        <div class="note warn">
+          <span class="tag">最後まで進める</span>
+          <p><strong>3 を途中で閉じないでください。</strong>Bot がすでにサーバーにいても、編集台は<strong>別に認証が要ります</strong>。途中で閉じると「このサーバーにはリクエストされたアクティビティへのアクセス権がありません」と表示されます。もう一度同じ手順をやり直せば直ります。</p>
+        </div>
+        <p class="muted">使えるのは、そのサーバーの<strong>管理権限</strong>がある方です。開くたびに権限を確認します。</p>
+
+        <h3>画面の見かた</h3>
+        <p>上に2つのタブがあります。<strong>商品を編集する</strong>と<strong>パネルを作る</strong>です。どちらも、開いた時点でそのサーバーの中身が入っています。</p>
+
+        <h3 id="tool-p">商品を編集する</h3>
+        <p>左に商品の一覧、右に編集欄が出ます。一覧から選ぶと編集欄が開きます。</p>
+        <div class="scroller">
+          <table>
+            <thead><tr><th>項目</th><th>あとから変えられるか</th></tr></thead>
+            <tbody>
+              <tr><th>商品名・説明・価格・購入上限</th><td>変えられます</td></tr>
+              <tr><th>公開／非公開</th><td>変えられます</td></tr>
+              <tr><th>中身の組み合わせ</th><td class="no">変えられません（作るときに決まります）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>中身の組み合わせだけは、作るときにしか決められません。</strong>「コードを渡す」「ファイルを渡す」「ロールを付ける」「手動で対応する」のどれを、いくつ組み合わせるか、という部分です。既存の商品を選ぶと、この部分は灰色で表示され、何が入っているかだけが読めます。</p>
+        <p>ロールの指定や、手動チケットの受付チャンネルといった<strong>細かい設定</strong>は、作ったあとに Discord の <code>/商品設定</code> で行います。</p>
+        <p>変えたところには薄い印が付きます。できたら「<strong>Discord に反映する</strong>」を押してください。<strong>何がどう変わるかが先に出ます。</strong>確かめて「適用する」を押すまで、何も変わりません。</p>
+        <div class="note info">
+          <span class="tag">在庫は入りません</span>
+          <p>編集台は<strong>在庫の中身を受け取りません</strong>。コードやファイルの本体は、Discord の <code>/cvm s</code> からだけ入れられます。編集台に出るのは<strong>残りの数</strong>だけです。</p>
+        </div>
+
+        <h3 id="tool-panel">パネルを作る</h3>
+        <p>購入ボタンを置く「パネル」を、Discord での見え方そのままで組みます。<strong>打ち込む場所が、そのまま出来上がりです。</strong></p>
+
+        <h4>組み立て</h4>
+        <p>まず<strong>並べる商品</strong>を選びます。次に、道具の下段にある「足す」から中身を入れていきます。</p>
+        <div class="scroller">
+          <table>
+            <thead><tr><th>足すもの</th><th>何になるか</th></tr></thead>
+            <tbody>
+              <tr><th>枠の見出し</th><td>枠のいちばん上に出る1行。1つの枠に1つだけ</td></tr>
+              <tr><th>説明</th><td>本文。見出しも箇条書きも使えます。1つの枠に1つだけ</td></tr>
+              <tr><th>項目</th><td>見出しと中身が対の小さな欄。<strong>横に3つまで並べられます</strong></td></tr>
+              <tr><th>画像</th><td>枠に入る画像。1枚だけ。どの枠に入れるかは選べます</td></tr>
+              <tr><th>枠</th><td>枠そのものをもう1枚。10枚まで</td></tr>
+              <tr><th>枠の外の本文</th><td>枠の上に出る、ふつうのメッセージ</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>足したものは<strong>いま触っている枠</strong>に入ります。枠が2枚以上あるときは、選んでいる枠が薄い線で示されます。押した場所がその枠になります。</p>
+        <p>外すときは、それぞれのゴミ箱を押します。<strong>枠ごと外すこともできます。</strong>枠を全部外すと、本文とボタンだけのパネルになります。</p>
+
+        <h4>文字の書式</h4>
+        <p>説明・項目の中身・枠の外の本文では、上の道具で書式を付けられます。</p>
+        <div class="scroller">
+          <table>
+            <thead><tr><th>道具</th><th>できること</th></tr></thead>
+            <tbody>
+              <tr><th>本文 / H1 / H2 / H3 / 小字</th><td>行の種類。数行を選べばまとめて変わります</td></tr>
+              <tr><th>引用 / 箇条 / 番号</th><td>行の形</td></tr>
+              <tr><th>B / I / U / S</th><td>太字・斜体・下線・取り消し線</td></tr>
+              <tr><th>コード / 伏せ字 / リンク</th><td>等幅・押すまで隠す・URL を付ける</td></tr>
+              <tr><th>✕</th><td>選んだところの書式を外して、ふつうの本文に戻します</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note info">
+          <span class="tag">見出しは2種類あります</span>
+          <p><strong>「枠の見出し」は枠に1つだけ</strong>で、文字だけです。<strong>文章の途中に見出しを置きたいときは、説明の中で H1〜H3 を使います。</strong>こちらは何個でも置けます。</p>
+        </div>
+
+        <h4>ボタンと色</h4>
+        <p>ボタンの色は、<strong>見え方のボタンを直接押す</strong>と変わります（青 → 灰 → 緑 → 赤）。Discord はこの4色しか受け付けません。</p>
+        <p>枠の左端の色は、上の道具の<strong>色見本</strong>か、<strong>枠の左端の帯</strong>を押すと選べます。枠ごとに変えられます。</p>
+
+        <h4>置く前に出る知らせ</h4>
+        <p>Discord に断られる条件を、置く前に出します。パネルは<strong>置き直しが利かない</strong>ためです。</p>
+        <ul class="plain">
+          <li><strong>赤</strong> — 直さないと置けません（文字数の超過、空の枠、非公開の商品など）</li>
+          <li><strong>黄</strong> — 置けますが、そうなりますという知らせ（在庫切れ、枠なしなど）</li>
+        </ul>
+        <p class="muted">道具の右にある数字は<strong>枠ぜんぶの合計の文字数</strong>です。ここが 6000 を超えると、Discord はメッセージごと受け付けません。</p>
+
+        <h4>保存して置く</h4>
+        <ol>
+          <li>いちばん下で<strong>パネルの名前</strong>を入れます（必須です）</li>
+          <li>「<strong>保存</strong>」を押します</li>
+          <li>Discord で <code>/cvm p</code> を実行し、<code>保存済み</code> から選びます</li>
+        </ol>
+        <p>保存したパネルは「<strong>保存してあるパネル</strong>」に並びます。名前・保存日・設置済みかどうかと、<strong>どのチャンネルに置いたか</strong>が出ます。</p>
+        <div class="note warn">
+          <span class="tag">置いたら固定されます</span>
+          <p><strong>一度置いたパネルは編集できません。</strong>一覧の「コピー」を押すと写しが開き、直して保存すると<strong>別のパネル</strong>として残ります。置いてあるほうは変わりません。同じものをもう一度置くことは、そのまま選べばできます。</p>
+        </div>
+        <p class="muted">画像を入れたパネルは、置くときに <code>/cvm p</code> の <code>画像</code> にも同じ画像を添付してください。編集台が持っているのは<strong>ファイル名だけ</strong>です。</p>
+
+        <h3>売れ行き</h3>
+        <p>商品の一覧の上に、直近30日の<strong>件数と売上</strong>が出ます。誰が買ったかは出ません。詳しい精算の状況は <code>/cvm e</code> で見られます。</p>
       </section>
 
       <section id="pay">
@@ -652,7 +776,7 @@
           <span class="tag">エラーが出た</span>
           <p>エラーには<strong>原因と直し方</strong>が一緒に表示されます。多くは次のどちらかです。</p>
           <ul class="plain">
-            <li><strong>初期設定がまだ</strong> — <code>/設定 初期化</code> を実行してください</li>
+            <li><strong>初期設定がまだ</strong> — <code>/アップデート</code> を実行してください</li>
             <li><strong>Bot の権限が足りない</strong> — サーバー設定 ▸ ロール ▸ このBotのロール で付けてください</li>
           </ul>
           <p>原因が特定できなかった場合は<strong>識別子</strong>が表示されます。運営へお伝えいただければ調査できます。</p>
@@ -679,7 +803,7 @@
 
         <div class="note">
           <span class="tag">売上が口座に届かない</span>
-          <p><code>/設定 売上</code> を見てください。</p>
+          <p><code>/cvm e</code> を見てください。</p>
           <ul class="plain">
             <li><strong>送信待ち</strong>のまま — 精算は5分ごとです。少し待ってください</li>
             <li><strong>要対応</strong>がある — 受取先の口座に問題があります。運営にご連絡ください</li>
@@ -891,30 +1015,8 @@
         </div>
       </section>
 
-      <section id="tool">
-        <h2>編集台</h2>
-        <p>商品とパネルは<strong>編集台</strong>で編集できます。Discord での見え方をその場で確認しながら作れます。<strong>Discord の中で開くので、ファイルの持ち運びは要りません。</strong></p>
-
-        <h3>開き方</h3>
-        <ol>
-          <li>会話の入力欄にある<strong>アプリのアイコン</strong>を押します</li>
-          <li>一覧から <strong>CVM</strong> を選びます</li>
-          <li><strong>初回だけ</strong>「アプリを追加」→「<strong>サーバーを認証</strong>」まで進めます</li>
-          <li>「アプリを開く」で編集台が開きます</li>
-        </ol>
-        <p><strong>3 を最後まで進めてください。</strong>Bot がすでにサーバーにいても、編集台は別に認証が要ります。途中で閉じると「このサーバーにはリクエストされたアクティビティへのアクセス権がありません」と表示されます。</p>
-
-        <h3>保存のしかた</h3>
-        <p>編集したら「<strong>Discord に反映する</strong>」を押します。<strong>何がどう変わるかが先に出る</strong>ので、確かめてから「適用する」を押してください。押すまでは何も変わりません。</p>
-        <p class="muted">使えるのは、サーバーの管理権限がある方と、<code>/設定 担当ロール</code> で指定された方です。</p>
-
-        <h3>ファイルで受け渡す方法（予備）</h3>
-        <p><a href="manage.html">ブラウザ版の編集台</a>も当面のあいだ使えます。<code>/設定 書き出し</code> で保存したファイルを読み込み、編集して <code>/設定 取り込み</code> で戻す方法です。</p>
-        <p class="muted">こちらは読み込んだ内容がブラウザから出ません。Discord の外へ設定を持ち出したいときにもお使いいただけます。</p>
-      </section>
-
       <p class="end">
-        Discord 内では <code>/ヘルプ</code> でも調べられます。<br>
+        Discord 内では <code>/自販機 ヘルプ</code> でも調べられます。<br>
         分からないことがあれば運営までご連絡ください。<br>
         この説明書は自販機Bot の現在の仕様に沿っています。
       </p>
