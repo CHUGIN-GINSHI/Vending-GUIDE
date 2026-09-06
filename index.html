@@ -209,7 +209,7 @@
     border-bottom: 1px solid var(--hair-firm);
     text-wrap: balance;
   }
-  /* ★ 編集台の節で h2 → h3 → h4 と深くなった（2026-09-10）。
+  /* ★ マネージャーの節で h2 → h3 → h4 と深くなった（2026-09-10）。
      既定のままだと段の違いが読めないので、間隔と重みで示す。 */
   section h3 { font-size: 1.12rem; margin: 2.3rem 0 0.9rem; letter-spacing: 0.01em; }
   section h4 { font-size: 0.98rem; margin: 1.7rem 0 0.7rem; color: var(--brass); letter-spacing: 0.04em; }
@@ -401,7 +401,7 @@
         <li><a href="#s7"><b>7</b><span>公開する</span></a></li>
         <li><a href="#s8"><b>8</b><span>パネルを置く</span></a></li>
         <li><a href="#s9"><b>9</b><span>自分で1件買ってみる</span></a></li>
-        <li><a href="#tool"><b>—</b><span>編集台</span></a></li>
+        <li><a href="#tool"><b>—</b><span>マネージャー</span></a></li>
         <li><a href="#pay"><b>—</b><span>支払い方法の選び方</span></a></li>
         <li><a href="#kind"><b>—</b><span>商品の種別</span></a></li>
         <li><a href="#apply"><b>—</b><span>自動受け取りを申し込む</span></a></li>
@@ -469,7 +469,7 @@
             <h3>商品を作る</h3>
           </div>
           <div class="step-body">
-            <p>商品は<strong>編集台</strong>で作ります。会話の入力欄にある<strong>アプリのアイコン</strong>を押して <strong>CVM</strong> を選んでください。初めて開くときは<a href="#tool">編集台</a>の手順をご覧ください。</p>
+            <p>商品は<strong>マネージャー</strong>で作ります。会話の入力欄にある<strong>アプリのアイコン</strong>を押して <strong>CVM</strong> を選んでください。初めて開くときは<a href="#tool">マネージャー</a>の手順をご覧ください。</p>
             <p>「商品を追加」を押して、次を入れます。</p>
             <ul class="plain">
               <li><strong>商品名</strong> — 購入者に見える名前</li>
@@ -538,7 +538,7 @@
           </div>
           <div class="step-body">
             <div class="slot"><b>/cvm l</b><button class="copy" type="button">コピー</button></div>
-            <p>一覧に出る<strong>「公開する」</strong>ボタンを押します。ここで初めて購入者から見えるようになります。編集台から公開することもできます。</p>
+            <p>一覧に出る<strong>「公開する」</strong>ボタンを押します。ここで初めて購入者から見えるようになります。マネージャーから公開することもできます。</p>
             <div class="note info">
               <span class="tag">公開できないとき</span>
               <p>在庫が1つも無い商品は公開できません。<strong>買えない商品を並べないため</strong>です。理由はボタンを押したときに出ます。</p>
@@ -575,19 +575,19 @@
       </section>
 
       <section id="tool">
-        <h2>編集台</h2>
-        <p>商品とパネルは<strong>編集台</strong>で作ります。Discord での見え方をその場で確かめながら組めます。<strong>Discord の中で開くので、ファイルの持ち運びは要りません。</strong></p>
+        <h2>マネージャー</h2>
+        <p>商品とパネルは<strong>マネージャー</strong>で作ります。Discord での見え方をその場で確かめながら組めます。<strong>Discord の中で開くので、ファイルの持ち運びは要りません。</strong></p>
 
         <h3>開き方</h3>
         <ol>
           <li>会話の入力欄にある<strong>アプリのアイコン</strong>を押します</li>
           <li>一覧から <strong>CVM</strong> を選びます</li>
           <li><strong>初回だけ</strong>「アプリを追加」→「<strong>サーバーを認証</strong>」まで進めます</li>
-          <li>「アプリを開く」で編集台が開きます</li>
+          <li>「アプリを開く」でマネージャーが開きます</li>
         </ol>
         <div class="note warn">
           <span class="tag">最後まで進める</span>
-          <p><strong>3 を途中で閉じないでください。</strong>Bot がすでにサーバーにいても、編集台は<strong>別に認証が要ります</strong>。途中で閉じると「このサーバーにはリクエストされたアクティビティへのアクセス権がありません」と表示されます。もう一度同じ手順をやり直せば直ります。</p>
+          <p><strong>3 を途中で閉じないでください。</strong>Bot がすでにサーバーにいても、マネージャーは<strong>別に認証が要ります</strong>。途中で閉じると「このサーバーにはリクエストされたアクティビティへのアクセス権がありません」と表示されます。もう一度同じ手順をやり直せば直ります。</p>
         </div>
         <p class="muted">使えるのは、そのサーバーの<strong>管理権限</strong>がある方です。開くたびに権限を確認します。</p>
 
@@ -611,7 +611,7 @@
         <p>変えたところには薄い印が付きます。できたら「<strong>Discord に反映する</strong>」を押してください。<strong>何がどう変わるかが先に出ます。</strong>確かめて「適用する」を押すまで、何も変わりません。</p>
         <div class="note info">
           <span class="tag">在庫は入りません</span>
-          <p>編集台は<strong>在庫の中身を受け取りません</strong>。コードやファイルの本体は、Discord の <code>/cvm s</code> からだけ入れられます。編集台に出るのは<strong>残りの数</strong>だけです。</p>
+          <p>マネージャーは<strong>在庫の中身を受け取りません</strong>。コードやファイルの本体は、Discord の <code>/cvm s</code> からだけ入れられます。マネージャーに出るのは<strong>残りの数</strong>だけです。</p>
         </div>
 
         <h3 id="tool-panel">パネルを作る</h3>
@@ -677,7 +677,7 @@
           <span class="tag">置いたら固定されます</span>
           <p><strong>一度置いたパネルは編集できません。</strong>一覧の「コピー」を押すと写しが開き、直して保存すると<strong>別のパネル</strong>として残ります。置いてあるほうは変わりません。同じものをもう一度置くことは、そのまま選べばできます。</p>
         </div>
-        <p class="muted">画像を入れたパネルは、置くときに <code>/cvm p</code> の <code>画像</code> にも同じ画像を添付してください。編集台が持っているのは<strong>ファイル名だけ</strong>です。</p>
+        <p class="muted">画像を入れたパネルは、置くときに <code>/cvm p</code> の <code>画像</code> にも同じ画像を添付してください。マネージャーが持っているのは<strong>ファイル名だけ</strong>です。</p>
 
         <h3>売れ行き</h3>
         <p>商品の一覧の上に、直近30日の<strong>件数と売上</strong>が出ます。誰が買ったかは出ません。詳しい精算の状況は <code>/cvm e</code> で見られます。</p>
@@ -760,9 +760,9 @@
         <h2>つまずきやすいところ</h2>
 
         <div class="note">
-          <span class="tag">編集台が開けない／アクセス権がありませんと出る</span>
+          <span class="tag">マネージャーが開けない／アクセス権がありませんと出る</span>
           <p><strong>初回の認証が済んでいません。</strong>会話の入力欄にあるアプリのアイコンから <strong>CVM</strong> を選び、「アプリを追加」→「<strong>サーバーを認証</strong>」まで進めてください。</p>
-          <p>Bot がすでにサーバーにいても、編集台は<strong>別に認証が要ります</strong>。途中で閉じると認可が残りません。</p>
+          <p>Bot がすでにサーバーにいても、マネージャーは<strong>別に認証が要ります</strong>。途中で閉じると認可が残りません。</p>
           <p>認証を済ませても出る場合は、Discord を一度完全に終了して開き直してください。設定の反映に数分かかることがあります。</p>
         </div>
 
