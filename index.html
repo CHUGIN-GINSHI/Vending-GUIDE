@@ -440,7 +440,7 @@
         <li><a href="#parts"><b>—</b><span>中身（部品）の考えかた</span></a></li>
         <li><a href="#pay"><b>—</b><span>支払い方法の選び方</span></a></li>
         <li><a href="#kind"><b>—</b><span>商品の種別</span></a></li>
-        <li><a href="#apply"><b>—</b><span>自動受け取りを申し込む</span></a></li>
+        <li><a href="#apply"><b>—</b><span>運営が受け取る PayPay</span></a></li>
         <li><a href="#trouble"><b>—</b><span>つまずきやすいところ</span></a></li>
         <li><a href="#buyers"><b>—</b><span>購入者への案内</span></a></li>
         <li><a href="#terms"><b>—</b><span>利用規約</span></a></li>
@@ -489,19 +489,18 @@
           </div>
           <div class="step-body">
             <div class="slot"><b>/設定 決済方法</b> <i>方法:&lt;選ぶ&gt; 有効:True</i><button class="copy" type="button">コピー</button></div>
-            <p>4つから選べます。複数を同時に有効にして、購入者に選ばせることもできます。違いは<a href="#pay">支払い方法の選び方</a>にまとめました。</p>
+            <p>「残高」「PayPay（自分の口座で受け取る）」「PayPay（運営が受け取る・許可制）」から選べます。残高と PayPay を同時に有効にして、購入者に選ばせることもできます（<strong>PayPay はどちらか一方だけ</strong>）。違いは<a href="#pay">支払い方法の選び方</a>にまとめました。</p>
           <details class="more">
             <summary>くわしく</summary>
             <div class="more-body">
-            <div class="note warn">
-              <span class="tag">申し込みが必要</span>
-              <p><strong>PayPay リンク（自動受け取り）は、そのままでは有効にできません。</strong>運営者が代金をお預かりする方式のため、個別のお申し込みと確認が必要です。</p>
-              <p><strong>PayPay 手動確認</strong>なら今すぐ使えます。購入者があなたの PayPay へ直接送金する方式です。まずはこちらで始めて、必要になってから申し込むのが確実です。</p>
-            </div>
             <div class="note info">
-              <span class="tag">手動確認を使うなら</span>
-              <p><strong>PayPay 手動確認</strong>を有効にする前に、送金先と確認チャンネルの登録が要ります。先に済ませていないと有効化できません。</p>
-              <div class="slot" style="margin-top:.6rem;margin-bottom:0"><b>/設定 決済</b> <i>paypay_id:&lt;あなたのID&gt; 確認チャンネル:&lt;#チャンネル&gt;</i><button class="copy" type="button">コピー</button></div>
+              <span class="tag">自分の口座で受け取るなら</span>
+              <p><strong>PayPay（自分の口座で受け取る）</strong>を有効にする前に、受け取る PayPay の登録が要ります。注意書きを読んで「同意して入力」を押し、電話番号とパスワード、SMS に届く認証コードを入れてください。</p>
+              <div class="slot" style="margin-top:.6rem;margin-bottom:0"><b>/設定 paypayログイン</b><button class="copy" type="button">コピー</button></div>
+            </div>
+            <div class="note warn">
+              <span class="tag">許可が必要</span>
+              <p><strong>PayPay（運営が受け取る）は、そのままでは有効にできません。</strong>運営者が代金をお預かりする方式のため、運営の許可が必要です。<a href="#apply">運営が受け取る PayPay</a>をご覧ください。</p>
             </div></div>
           </details>
         </div>
@@ -623,7 +622,7 @@
           <details class="more">
             <summary>くわしく</summary>
             <div class="more-body">
-            <p>PayPay リンクで買った場合、精算は5分ごとに動きます。少し待ってから確認してください。</p>
+            <p>PayPay（運営が受け取る）で買った場合、精算は5分ごとに動きます。少し待ってから確認してください。PayPay（自分の口座で受け取る）なら、代金はあなたの PayPay に直接入ります。PayPay アプリの履歴で確かめてください。</p>
             <div class="slot"><b>/cvm e</b><button class="copy" type="button">コピー</button></div>
             <div class="note info">
               <span class="tag">通ったサイン</span>
@@ -849,25 +848,26 @@
 
       <section id="pay">
         <h2>支払い方法の選び方</h2>
-        <p><strong>駐銀の口座で売上を受け取れるのは「PayPay リンク（自動受け取り）」だけ</strong>です。ほかの2つは、代金があなたの手元やサーバー内で完結します。</p>
+        <p><strong>駐銀の口座で売上を受け取れるのは「PayPay（運営が受け取る）」だけ</strong>です。ほかの2つは、代金があなたの手元やサーバー内で完結します。</p>
         <div class="scroller">
           <table>
             <thead>
               <tr>
                 <th></th>
                 <th>残高</th>
-                <th>PayPay リンク<br>（自動受け取り）</th>
-                <th>PayPay 手動確認</th>
+                <th>PayPay<br>（自分の口座で受け取る）</th>
+                <th>PayPay<br>（運営が受け取る）</th>
               </tr>
             </thead>
             <tbody>
-              <tr><th>ご利用</th><td>すぐ使えます</td><td class="no"><strong>個別のお申し込みが必要</strong></td><td>すぐ使えます</td></tr>
-              <tr><th>代金の行き先</th><td>サーバー内の残高</td><td>運営が受け取り、駐銀の口座へ</td><td>あなたの PayPay に直接</td></tr>
-              <tr><th>購入者の手間</th><td class="yes">ボタンだけ</td><td>リンクを貼る</td><td>送金して取引IDを入力</td></tr>
-              <tr><th>あなたの手間</th><td class="yes">なし</td><td class="yes">なし</td><td>入金を目で確認する</td></tr>
-              <tr><th>駐銀への入金</th><td class="no">なし</td><td class="yes">あり</td><td class="no">なし</td></tr>
+              <tr><th>ご利用</th><td>すぐ使えます</td><td>先に <code>/設定 paypayログイン</code></td><td class="no"><strong>運営の許可が必要</strong></td></tr>
+              <tr><th>代金の行き先</th><td>サーバー内の残高</td><td>あなたの PayPay に直接</td><td>運営が受け取り、駐銀の口座へ</td></tr>
+              <tr><th>購入者の手間</th><td class="yes">ボタンだけ</td><td>送金リンクを貼る</td><td>送金リンクを貼る</td></tr>
+              <tr><th>あなたの手間</th><td class="yes">なし</td><td>保留が出たら履歴を確かめる</td><td class="yes">なし</td></tr>
+              <tr><th>返金</th><td>—</td><td>あなたが PayPay で行う</td><td>運営が PayPay で行う</td></tr>
+              <tr><th>駐銀への入金</th><td class="no">なし</td><td class="no">なし</td><td class="yes">あり</td></tr>
               <tr><th>購入者に口座が要るか</th><td>サーバー内の残高が要る</td><td class="yes">不要</td><td class="yes">不要</td></tr>
-              <tr><th>向いているもの</th><td>イベント景品、サーバー内通貨</td><td>ふつうの販売</td><td>少量・相手が決まっている取引</td></tr>
+              <tr><th>向いているもの</th><td>イベント景品、サーバー内通貨</td><td>ふつうの販売</td><td>駐銀の口座で売上を受け取りたいとき</td></tr>
             </tbody>
           </table>
         </div>
@@ -875,7 +875,13 @@
 
         <div class="note info">
           <span class="tag">なぜ差があるのか</span>
-          <p>「PayPay リンク」では代金が<strong>いったん運営に入る</strong>ので、そこから駐銀の口座へ振り替えられます。「手動確認」は購入者があなたに直接送るため、運営は代金を預かっておらず、駐銀を経由しません。</p>
+          <p>「運営が受け取る」では代金が<strong>いったん運営に入る</strong>ので、そこから駐銀の口座へ振り替えられます。「自分の口座で受け取る」は Bot があなたの PayPay で直接受け取るため、運営は代金を預かっておらず、駐銀を経由しません。</p>
+        </div>
+
+        <div class="note warn">
+          <span class="tag">PayPay の公式の連携ではありません</span>
+          <p>どちらの PayPay も、PayPay の公式の連携ではありません。仕様変更で使えなくなる、<strong>アカウントが制限される</strong>恐れがあります。少額でお使いください。</p>
+          <p>「自分の口座で受け取る」では、Bot があなたの PayPay の電話番号とパスワードを<strong>暗号化して保管</strong>し、購入のたびにログインして送金リンクを受け取ります。<code>/設定 paypayログアウト</code> で登録を消すと、PayPay での購入も止まります。</p>
         </div>
       </section>
 
@@ -896,28 +902,24 @@
       </section>
 
       <section id="apply">
-        <h2>自動受け取りを申し込む</h2>
-        <p><strong>PayPay リンク（自動受け取り）</strong>は、運営者が代金をお預かりして、売上をあなたの駐銀口座へ振り替える方式です。お金をお預かりする以上、どなたにでも提供できるものではありません。</p>
-        <p>専門家の助言により、<strong>面識のある方に限ってご提供しています。</strong>それ以外の方には <strong>PayPay 手動確認</strong>をご案内しています。こちらは購入者があなたへ直接送金するので、運営者は代金に一切触れません。</p>
+        <h2>運営が受け取る PayPay</h2>
+        <p><strong>PayPay（運営が受け取る）</strong>は、運営者が代金をお預かりして、売上をあなたの駐銀口座へ振り替える方式です。お金をお預かりする以上、どなたにでも提供できるものではありません。</p>
+        <p>専門家の助言により、<strong>面識のある方に限ってご提供しています。</strong>それ以外の方には <strong>PayPay（自分の口座で受け取る）</strong>をご案内しています。こちらは代金があなたの PayPay に直接入るので、運営者は代金を預かりません。</p>
 
         <div class="note info">
-          <span class="tag">申し込みの流れ</span>
-          <ul class="plain">
-            <li>駐銀の自販機にある<strong>「自動受け取りの申し込み」</strong>から手続きしてください</li>
-            <li>あなたと担当者だけが見えるチャンネルが作られます</li>
-            <li>そこで確認のうえ、運営が許可します</li>
-          </ul>
+          <span class="tag">ご希望のとき</span>
+          <p>運営にご相談ください。確認のうえ、運営がサーバーごとに許可します。</p>
         </div>
 
         <div class="note warn">
           <span class="tag">許可のあとにもう一手</span>
           <p><strong>許可が下りただけでは購入画面に出ません。</strong>ご自分のサーバーで有効にする操作が別に必要です。</p>
-          <div class="slot" style="margin-bottom:0"><b>/設定 決済方法</b> <i>方法:PayPay リンク（自動受け取り） 有効:True</i><button class="copy" type="button">コピー</button></div>
+          <div class="slot" style="margin-bottom:0"><b>/設定 決済方法</b> <i>方法:PayPay（運営が受け取る・許可制） 有効:True</i><button class="copy" type="button">コピー</button></div>
         </div>
 
         <p>許可は「使ってよい」という運営の判断、有効化は「実際に使う」というあなたの設定です。<strong>二段階に分かれています。</strong></p>
 
-        <p class="muted">申し込みまでの間も、PayPay 手動確認・残高・無料の商品は制限なくご利用いただけます。</p>
+        <p class="muted">許可までの間も、PayPay（自分の口座で受け取る）・残高・無料の商品は制限なくご利用いただけます。</p>
       </section>
 
       <section id="trouble">
@@ -931,9 +933,12 @@
         </div>
 
         <div class="note">
-          <span class="tag">PayPay リンクが購入画面に出ない</span>
-          <p>許可は下りていても、<strong>ご自分で有効にする操作</strong>が必要です。<code>/設定 決済方法</code> で「PayPay リンク（自動受け取り）」を有効にしてください。</p>
-          <p>「まだご利用いただけません」と断られる場合は、許可がまだです。<a href="#apply">自動受け取りを申し込む</a>をご覧ください。</p>
+          <span class="tag">PayPay が購入画面に出ない</span>
+          <p><code>/設定 決済方法</code> で PayPay を<strong>有効にする操作</strong>が必要です。</p>
+          <ul class="plain">
+            <li><strong>自分の口座で受け取る</strong> — 先に <code>/設定 paypayログイン</code> で登録してください。登録の有無は <code>/設定 paypay状態</code> で見られます。ログアウトすると決済方法も無効に戻ります</li>
+            <li><strong>運営が受け取る</strong> — 運営の許可が要ります。<a href="#apply">運営が受け取る PayPay</a>をご覧ください</li>
+          </ul>
         </div>
 
         <div class="note">
@@ -957,12 +962,20 @@
         </div>
 
         <div class="note">
-          <span class="tag">PayPay リンクが受け付けられない</span>
-          <p>次のどちらかです。購入者に伝えてください。</p>
+          <span class="tag">PayPay の送金リンクが受け付けられない</span>
+          <p>次のどれかです。購入者に伝えてください。</p>
           <ul class="plain">
-            <li>金額が注文と違う — <strong>ぴったり同じ</strong>である必要があります</li>
+            <li>金額が商品の価格と違う — <strong>ちょうど同じ</strong>である必要があります（多く払った分は戻せないため）</li>
             <li>パスコードが付いている — <strong>パスコードなし</strong>で作り直してもらってください</li>
+            <li>受け取り済み・取り消し済み・期限切れのリンク — 新しく作り直してもらってください</li>
           </ul>
+        </div>
+
+        <div class="note">
+          <span class="tag">PayPay の注文が保留のまま</span>
+          <p>送った側の承認待ちなどで、受け取りが確かめられなかった注文です。<strong>在庫は押さえたまま</strong>になっています。</p>
+          <p><code>/設定 paypay状態</code> で保留中の注文を見て、PayPay アプリの履歴を確かめてから決めてください。受け取れていたなら商品が購入者へ届き、受け取れていなかったなら在庫が戻ります。</p>
+          <div class="slot" style="margin-bottom:0"><b>/設定 paypay確定</b> <i>注文id:&lt;番号&gt; 受け取れていた:&lt;True|False&gt; [決済番号:&lt;PayPay の取引番号&gt;]</i><button class="copy" type="button">コピー</button></div>
         </div>
 
         <div class="note">
@@ -977,27 +990,27 @@
 
         <div class="note stop">
           <span class="tag">自分で買っても売上にならない</span>
-          <p>「PayPay 手動確認」と「残高」での購入は、駐銀への入金が発生しません。自分の商品を自分で買っても、口座は増えません。<strong>売上として口座に入るのは、PayPay リンクで実際に代金が動いたときだけ</strong>です。</p>
+          <p>「PayPay（自分の口座で受け取る）」と「残高」での購入は、駐銀への入金が発生しません。自分の商品を自分で買っても、口座は増えません。<strong>売上として口座に入るのは、PayPay（運営が受け取る）で実際に代金が動いたときだけ</strong>です。</p>
         </div>
       </section>
 
       <section id="buyers">
         <h2>購入者への案内</h2>
-        <p>PayPay リンクでの買い方です。そのままサーバーに貼って使えます。</p>
-        <div class="slot" style="white-space:pre-wrap">【PayPay リンクでの買い方】
+        <p>PayPay での買い方です。そのままサーバーに貼って使えます。</p>
+        <div class="slot" style="white-space:pre-wrap">【PayPay での買い方】
 1. パネルの「商品を選ぶ」から欲しいものを選ぶ
-2. 表示された金額<b>ちょうど</b>の送金リンクを PayPay アプリで作る
-3. <b>パスコードは付けない</b>
-4. リンクを貼る
-5. PayPay で承認が必要な場合は、アプリで承認する
+2. 「PayPayで購入」を押す
+3. 表示された金額<b>ちょうど</b>の送金リンクを PayPay アプリで作る（<b>パスコードは付けない</b>）
+4. 入力欄にリンクを貼って送る
 
-承認が済めば自動で商品が届きます。<button class="copy" type="button">コピー</button></div>
-        <p class="muted">リンクを貼ってから1分待っても終わらないときは、「承認しました」ボタンが出ます。押すとすぐ確認しにいきます。ふつうはボタンが出る前に終わります。</p>
+受け取れたら、その場で商品が届きます。
+「承認待ちの可能性があります」と出たら、PayPay アプリに届いた通知から承認してください。出品者が確認してから商品をお渡しします。<button class="copy" type="button">コピー</button></div>
+        <p class="muted">受け取りが確かめられない注文は保留になります。出品者が PayPay の履歴を確かめてから、商品をお渡しするか、取り消して在庫を戻します。</p>
       </section>
 
       <section id="terms">
         <h2>利用規約</h2>
-        <p class="muted">最終更新: 2026-08-25</p>
+        <p class="muted">最終更新: 2026-10-05</p>
         <div class="terms">
         
         <details class="more art">
@@ -1042,8 +1055,8 @@
         <li>PayPay による決済には二つの方式がある。</li>
         </ol>
         <ul>
-        <li><strong>PayPay 手動確認</strong>: 送金先は<strong>サーバー管理者自身の口座</strong>である。運営者は当該送金を 仲介せず、入金の確認はサーバー管理者が行う。</li>
-        <li><strong>PayPay リンク（自動受け取り）</strong>: <strong>運営者が代金を受け取る</strong>。詳細は第4条の2による。</li>
+        <li><strong>PayPay（自分の口座で受け取る）</strong>: 送金先は<strong>サーバー管理者自身の PayPay</strong> である。本サービスは、サーバー管理者が登録した PayPay の認証情報を用いて、サーバー管理者に代わり送金リンクを受け取る。<strong>運営者は代金を受領しない。</strong> 受け取りを確認できなかった取引の確認、および返金はサーバー管理者が行う。 本方式は PayPay の公式の連携ではなく、仕様変更により利用できなくなること、または PayPay のアカウントが制限されることがある。 サーバー管理者はこれを理解したうえで利用する。</li>
+        <li><strong>PayPay（運営が受け取る）</strong>: <strong>運営者が代金を受け取る</strong>。詳細は第4条の2による。</li>
         </ul>
         <ol>
         <li>駐銀口座を用いる決済において、購入代金は購入者の駐銀口座から引き落とされ、 サーバー管理者の駐銀口座へ振り替えられる。</li>
@@ -1053,10 +1066,10 @@
         </details>
 
         <details class="more art">
-          <summary>第4条の2（PayPay リンクによる決済と売上の精算）</summary>
+          <summary>第4条の2（PayPay（運営が受け取る）による決済と売上の精算）</summary>
           <div class="more-body">
         <ol>
-        <li>「PayPay リンク（自動受け取り）」は、<strong>運営者が個別に許可したサーバーでのみ利用できる。</strong> 許可はサーバー単位で与え、運営者は理由を示すことなく許可を拒み、または撤回できる。 撤回した場合、当該決済方式は直ちに利用できなくなる。</li>
+        <li>「PayPay（運営が受け取る）」は、<strong>運営者が個別に許可したサーバーでのみ利用できる。</strong> 許可はサーバー単位で与え、運営者は理由を示すことなく許可を拒み、または撤回できる。 撤回した場合、当該決済方式は直ちに利用できなくなる。</li>
         <li>前項の方式では、購入者が作成した PayPay の送金リンクを<strong>運営者が受け取る</strong>。</li>
         <li>本条の方式を利用する場合、サーバー管理者は**売上の受取先として駐銀口座を指定しなければ ならない。受取先に指定できるのは駐銀の会員に限る**（第3条6項）。</li>
         <li>運営者は、商品の引渡しが完了した取引について、購入代金から第4条の3の手数料を控除した額を、 前項の駐銀口座へ振り替える。</li>
@@ -1208,7 +1221,7 @@
         </ul>
         <ol>
         <li>運営者は、法令に基づく場合を除き、これらの情報を第三者に提供しない。</li>
-        <li><strong>決済に用いる認証情報（PayPay のパスワード等）を運営者が預かることはない。</strong></li>
+        <li><strong>運営者は、PayPay（自分の口座で受け取る）を利用するサーバー管理者が登録した PayPay の認証情報（電話番号・パスワード等）を、暗号化して保管する。</strong> 運営者はこれを送金リンクの受け取りにのみ用い、サーバー管理者が登録を削除したときは本サービスのデータベースから消去する。 購入者の決済の認証情報を預かることはない。</li>
         <li><strong>取引の記録は、取引の完了から1年間保存する。</strong> 紛争が生じている場合その他必要がある場合は、 解決まで保存を継続する。</li>
         <li>前項は取引の記録（注文・引渡し・精算）についての定めであり、**サーバーやアプリケーションの 動作ログはこれと別**に扱う。動作ログは保守の目的で保持し、容量に応じて順次削除する。</li>
         <li>手動チケット方式では、注文ごとに**購入者とサーバー管理者（担当者）が閲覧できる チャンネル**を作成することがある。当該チャンネルの内容はサーバー管理者が管理する。</li>
